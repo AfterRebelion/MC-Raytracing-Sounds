@@ -48,8 +48,7 @@ import java.util.TimerTask;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-@Mod(modid = SoundPhysics.modid, clientSideOnly = true, acceptedMinecraftVersions = SoundPhysics.mcVersion, version = SoundPhysics.version, guiFactory = "com.sonicether.soundphysics.SPGuiFactory",
-	dependencies = SoundPhysics.deps)
+@Mod(SoundPhysics.modid)
 public class SoundPhysics {
 
 	public static final String modid = "soundphysics";

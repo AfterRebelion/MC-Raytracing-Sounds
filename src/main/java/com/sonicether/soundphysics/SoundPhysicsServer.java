@@ -5,8 +5,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 //Server side mod to load the config
-@Mod(modid = SoundPhysics.modid, serverSideOnly = true, acceptedMinecraftVersions = SoundPhysics.mcVersion, version = SoundPhysics.version, acceptableRemoteVersions = "*",
-	guiFactory = "com.sonicether.soundphysics.SPGuiFactory", dependencies = SoundPhysics.deps)
+@Mod(SoundPhysics.modid)
 public class SoundPhysicsServer {
 	@Mod.EventHandler
 	public void preInit(final FMLPreInitializationEvent event) {
