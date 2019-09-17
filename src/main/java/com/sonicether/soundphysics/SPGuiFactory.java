@@ -3,7 +3,7 @@ package com.sonicether.soundphysics;
 import java.util.Set;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraftforge.fml.client.IModGuiFactory;
 
 public class SPGuiFactory implements IModGuiFactory {
@@ -18,7 +18,7 @@ public class SPGuiFactory implements IModGuiFactory {
 	}
 
 	@Override
-	public GuiScreen createConfigGui(GuiScreen parentScreen) {
+	public Screen createConfigGui(Screen parentScreen) {
 		return new SPGuiConfig(parentScreen);
 	}
 

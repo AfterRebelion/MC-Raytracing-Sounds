@@ -12,7 +12,9 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 public class Config {
 
@@ -77,12 +79,12 @@ public class Config {
 		syncConfig();
 	}
 
-	public void preInit(final FMLPreInitializationEvent event) {
+	public void preInit(final FMLCommonSetupEvent event) {
 		//this.forgeConfig = new Configuration(event.getSuggestedConfigurationFile());
 		syncConfig();
 	}
 
-	public void init(final FMLInitializationEvent event) {
+	public void init(final FMLClientSetupEvent event) {
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 

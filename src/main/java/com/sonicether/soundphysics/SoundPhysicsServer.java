@@ -1,20 +1,18 @@
 package com.sonicether.soundphysics;
 
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 //Server side mod to load the config
 @Mod(SoundPhysics.modid)
 public class SoundPhysicsServer {
-	@Mod.EventHandler
-	public void preInit(final FMLPreInitializationEvent event) {
+	public void setup(final FMLCommonSetupEvent event) {
 		SoundPhysics.onServer = true;
 		Config.instance.preInit(event);
 	}
 
-	@Mod.EventHandler
-	public void init(final FMLInitializationEvent event) {
+	public void doClientStuff(final FMLClientSetupEvent event) {
 		Config.instance.init(event);
 	}
 }
