@@ -1,0 +1,4 @@
+{
+	"soundsystem": "META-INF/coremods/soundsystem.js",
+	"soundengine": "META-INF/coremods/soundengine.js"
+}

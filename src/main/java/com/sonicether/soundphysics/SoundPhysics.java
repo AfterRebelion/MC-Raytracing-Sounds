@@ -7,11 +7,6 @@ import java.util.ListIterator;
 import java.util.Collections;
 import java.nio.FloatBuffer;
 
-import net.minecraft.client.audio.AudioStreamBuffer;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.audio.SoundSystem;
-import net.minecraft.client.audio.ISound.AttenuationType;
-import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.math.*;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
@@ -30,21 +25,14 @@ import org.lwjgl.BufferUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.client.Minecraft;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import org.lwjgl.openal.EXTEfx;
-import javax.sound.sampled.AudioFormat;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -61,12 +49,12 @@ public class SoundPhysics {
 
 	public static boolean onServer = false;
 
-	private static final Pattern rainPattern = Pattern.compile(".*rain.*");
-	private static final Pattern stepPattern = Pattern.compile(".*step.*");
+	protected static final Pattern rainPattern = Pattern.compile(".*rain.*");
+	protected static final Pattern stepPattern = Pattern.compile(".*step.*");
 	private static final Pattern blockPattern = Pattern.compile(".*block.*");
-	private static final Pattern uiPattern = Pattern.compile(".*\\/ui\\/.*");
-	private static final Pattern clickPattern = Pattern.compile(".*random.click.*");
-	private static final Pattern noteBlockPattern = Pattern.compile(".*block.note.*");
+	protected static final Pattern uiPattern = Pattern.compile(".*\\/ui\\/.*");
+	protected static final Pattern clickPattern = Pattern.compile(".*random.click.*");
+	protected static final Pattern noteBlockPattern = Pattern.compile(".*block.note.*");
 
 	public SoundPhysics() {
 		// Register the setup method for modloading
@@ -110,43 +98,11 @@ public class SoundPhysics {
 	private static int sendFilter2;
 	private static int sendFilter3;
 
-	private static Minecraft mc;
-	private static SoundSystem sndSystem;
-
-	private static SoundCategory lastSoundCategory;
-	private static String lastSoundName;
-
 	private static ProcThread proc_thread;
 	private static volatile boolean thread_alive;
+	@SuppressWarnings("unused")
 	private static volatile boolean thread_signal_death;
 	private static volatile List<Source> source_list;
-
-	// THESE VARIABLES ARE CONSTANTLY ACCESSED AND USED BY ASM INJECTED CODE! DO
-	// NOT REMOVE!
-	public static AttenuationType attenuationModel = ISound.AttenuationType.LINEAR; // Mojang only ported LINEAR attenuation for their sound system... See ISound.AttenuationType
-	public static Double globalRolloffFactor = Config.rolloffFactor.get();
-	public static float globalVolumeMultiplier = 4.0f;
-	public static float globalReverbMultiplier = (float) (0.7f * Config.globalReverbGain.get());
-	public static double soundDistanceAllowance = Config.soundDistanceAllowance.get();
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static void init(SoundSystem snds) {
-		mc = Minecraft.getInstance();
-		sndSystem = snds;
-		try {
-			/*if (Config.dopplerEnabled) {
-				sndSystem.changeDopplerFactor(1.0f);
-				AL11.alSpeedOfSound(343.3f); // Should already be 343.3 but just in case
-			}*/
-			setupEFX();
-			setupThread();
-		} catch (Throwable e) {
-			logError("Failed to init EFX or thread");
-			logError(e.toString());
-		}
-	}
 
 	public static class Source {
 		public int sourceID;
@@ -240,7 +196,7 @@ public class SoundPhysics {
 	public static class DebugDisplayEventHandler {
 		@SubscribeEvent
 		public static void onDebugOverlay(RenderGameOverlayEvent.Text event) {
-			if (mc != null && mc.gameSettings.showDebugInfo && Config.dynamicEnvironementEvalutaion.get() && Config.debugInfoShow.get()) {
+			if (AsmHooks.mc != null && AsmHooks.mc.gameSettings.showDebugInfo && Config.dynamicEnvironementEvalutaion.get() && Config.debugInfoShow.get()) {
 				event.getLeft().add("");
 				event.getLeft().add("[SoundPhysics] "+String.valueOf(source_list.size())+" Sources");
 				event.getLeft().add("[SoundPhysics] Source list :");
@@ -269,7 +225,7 @@ public class SoundPhysics {
 		}
 	}
 
-	private static synchronized void setupThread() {
+	static synchronized void setupThread() {
 		if (source_list == null) source_list = Collections.synchronizedList(new ArrayList<Source>());
 		else source_list.clear();
 
@@ -286,9 +242,9 @@ public class SoundPhysics {
 	}
 
 	public static void applyConfigChanges() {
-		globalRolloffFactor = Config.rolloffFactor.get();
-		globalReverbMultiplier = (float) (0.7f * Config.globalReverbGain.get());
-		soundDistanceAllowance = Config.soundDistanceAllowance.get();
+		AsmHooks.globalRolloffFactor = Config.rolloffFactor.get();
+		AsmHooks.globalReverbMultiplier = (float) (0.7f * Config.globalReverbGain.get());
+		AsmHooks.soundDistanceAllowance = Config.soundDistanceAllowance.get();
 
 		if (auxFXSlot0 != 0) {
 			// Set the global reverb parameters and apply them to the effect and
@@ -300,7 +256,7 @@ public class SoundPhysics {
 		}
 	}
 
-	private static void setupEFX() {
+	static void setupEFX() {
 		// Get current context and device
 		final long currentContext = ALC10.alcGetCurrentContext();
 		final long currentDevice = ALC10.alcGetContextsDevice(currentContext);
@@ -363,136 +319,8 @@ public class SoundPhysics {
 		applyConfigChanges();
 	}
 
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static void setLastSoundCategory(final SoundCategory sc) {
-		lastSoundCategory = sc;
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static void setLastSoundName(final String soundName, final String eventName) {
-		lastSoundName = eventName+"|"+soundName.split(":")[1]; // Quick and dirty hack to check the event and sound name
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static void setLastSoundName(final String soundName) {
-		lastSoundName = soundName;
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	// For sounds that get played normally
-	public static void onPlaySound(final float posX, final float posY, final float posZ, final int sourceID) {
-		onPlaySound(posX, posY, posZ, sourceID, lastSoundCategory, lastSoundName);
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	// For sounds that get played using OpenAL directly or just not using the minecraft sound system
-	public static void onPlaySoundAL(final float posX, final float posY, final float posZ, final int sourceID) {
-		onPlaySound(posX, posY, posZ, sourceID, SoundCategory.MASTER, "openal");
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static void onPlaySound(final float posX, final float posY, final float posZ, final int sourceID, SoundCategory soundCat, String soundName) {
-		//log(String.valueOf(posX)+" "+String.valueOf(posY)+" "+String.valueOf(posZ)+" - "+String.valueOf(sourceID)+" - "+soundCat.toString()+" - "+soundName);
-		if (Config.noteBlockEnable.get() && soundCat == SoundCategory.RECORDS && noteBlockPattern.matcher(soundName).matches()) soundCat = SoundCategory.BLOCKS;
-		evaluateEnvironment(sourceID, posX, posY, posZ,soundCat,soundName);
-		if (!Config.dynamicEnvironementEvalutaion.get()) return;
-		if ((mc.player == null || mc.world == null || posY <= 0 || soundCat == SoundCategory.RECORDS 
-		|| soundCat == SoundCategory.MUSIC) || (Config.skipRainOcclusionTracing.get() && rainPattern.matcher(soundName).matches())) return;
-		if (clickPattern.matcher(soundName).matches() || uiPattern.matcher(soundName).matches()) return;
-		Source tmp = new Source(sourceID,posX,posY,posZ,soundCat,soundName);
-		source_check_add(tmp);
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static AudioStreamBuffer onLoadSound(AudioStreamBuffer buff, String filename) {
-		if (buff == null || buff.field_216476_b.getChannels() == 1 || !Config.autoSteroDownmix.get()) return buff;
-		if (mc.player == null || mc.world == null || lastSoundCategory == SoundCategory.RECORDS
-		| lastSoundCategory == SoundCategory.MUSIC || uiPattern.matcher(filename).matches() || clickPattern.matcher(filename).matches()) {
-			if (Config.autoSteroDownmixLogging.get()) log("Not converting sound '"+filename+"'("+buff.field_216476_b.toString()+")");
-			return buff;
-		}
-		AudioFormat orignalformat = buff.field_216476_b;
-		int bits = orignalformat.getSampleSizeInBits();
-		boolean bigendian = orignalformat.isBigEndian();
-		AudioFormat monoformat = new AudioFormat(orignalformat.getEncoding(), orignalformat.getSampleRate(), bits,
-												1, orignalformat.getFrameSize(), orignalformat.getFrameRate(), bigendian);
-		if (Config.autoSteroDownmixLogging.get()) log("Converting sound '"+filename+"'("+orignalformat.toString()+") to mono ("+monoformat.toString()+")");
-
-		ByteBuffer bb = buff.field_216475_a;
-		bb.order(bigendian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
-		if (bits == 8) {
-			for (int i = 0; i < bb.array().length; i+=2) {
-				bb.put(i/2,(byte)((bb.get(i)+bb.get(i+1))/2));
-			}
-		} else if (bits == 16) {
-			for (int i = 0; i < bb.array().length; i+=4) {
-				bb.putShort((i/2),(short)((bb.getShort(i)+bb.getShort(i+2))/2));
-			}
-		}
-		buff.field_216476_b = monoformat;
-		// buff.trimData(bb.array().length/2); TODO: trimData is gone. Alternatives?
-		return buff;
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static double calculateEntitySoundOffset(final Entity entity, final SoundEvent sound) {
-		if (sound == null) return entity.getEyeHeight();
-		if (stepPattern.matcher(sound.getName().getPath()).matches()) {
-			return 0;
-		}
-
-		return entity.getEyeHeight();
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	public static Vec3d computronicsOffset(Vec3d or, TileEntity te, DirectionProperty pd) {
-		if (!te.hasWorld()) return or;
-		Direction ef = te.getWorld().getBlockState(te.getPos()).get(pd);
-		Vec3d efv = getNormalFromFacing(ef).scale(0.51);
-		return or.add(efv);
-	}
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	/*public static void onSetListener(Entity player, float partial_tick) {
-		float motionX = (float)((player.posX - player.prevPosX) * 20.0d);
-		float motionY = (float)((player.posY - player.prevPosY) * 20.0d);
-		float motionZ = (float)((player.posZ - player.prevPosZ) * 20.0d);
-		sndSystem.setListenerVelocity(motionX,motionY,motionZ);
-	}*/
-
-	/**
-	 * CALLED BY ASM INJECTED CODE!
-	 */
-	/*public static void onIRUpdate(Vec3d velocity, String source, float pitch) {
-		float motionX = (float)(velocity.x * 20.0d);
-		float motionY = (float)(velocity.y * 20.0d);
-		float motionZ = (float)(velocity.z * 20.0d);
-		sndSystem.CommandQueue(new CommandObject(CommandObject.SET_VELOCITY, source, motionX, motionY, motionZ));
-		sndSystem.CommandQueue(new CommandObject(CommandObject.SET_PITCH, source, pitch));
-	}*/
-
-
 	// Unused
+	@SuppressWarnings("unused")
 	private static boolean isSnowingAt(BlockPos position)
 	{
 		return isSnowingAt(position, true);
@@ -501,14 +329,14 @@ public class SoundPhysics {
 	// Copy of isRainingAt
 	private static boolean isSnowingAt(BlockPos position, boolean check_rain)
 	{
-		if (check_rain && !mc.world.isRaining()) {
+		if (check_rain && !AsmHooks.mc.world.isRaining()) {
 			return false;
 		}
-		else if (!mc.world.isSkyLightMax(position))
+		else if (!AsmHooks.mc.world.isSkyLightMax(position))
 		{
 			return false;
 		}
-		else if (mc.world.getHeight(Heightmap.Type.MOTION_BLOCKING, position).getY() > position.getY())
+		else if (AsmHooks.mc.world.getHeight(Heightmap.Type.MOTION_BLOCKING, position).getY() > position.getY())
 		{
 			return false;
 		}
@@ -518,13 +346,13 @@ public class SoundPhysics {
 			if (mc.world.getBiome(position).getEnableSnow() && cansnow) return true;
 			else if (cansnow) return true;
 			else return false;*/
-			return mc.world.getBiome(position).getPrecipitation() == Biome.RainType.SNOW;
+			return AsmHooks.mc.world.getBiome(position).getPrecipitation() == Biome.RainType.SNOW;
 		}
 	}
 
 	@SuppressWarnings("deprecation")
 	private static Double getBlockReflectivity(final BlockPos blockPos) {
-		final BlockState blockState = mc.world.getBlockState(blockPos);
+		final BlockState blockState = AsmHooks.mc.world.getBlockState(blockPos);
 		final Block block = blockState.getBlock();
 		final SoundType soundType = block.getSoundType(blockState);
 
@@ -559,7 +387,7 @@ public class SoundPhysics {
 		return reflectivity;
 	}
 
-	private static Vec3d getNormalFromFacing(final Direction sideHit) {
+	static Vec3d getNormalFromFacing(final Direction sideHit) {
 		return new Vec3d(sideHit.getDirectionVec());
 	}
 
@@ -589,7 +417,7 @@ public class SoundPhysics {
 		}
 
 		if (category == SoundCategory.BLOCKS || blockPattern.matcher(name).matches() || 
-			(name == "openal" && !mc.world.isAirBlock(new BlockPos(soundX,soundY,soundZ)))) {
+			(name == "openal" && !AsmHooks.mc.world.isAirBlock(new BlockPos(soundX,soundY,soundZ)))) {
 			// The ray will probably hit the block that it's emitting from
 			// before
 			// escaping. Offset the ray start position towards the player by the
@@ -613,9 +441,9 @@ public class SoundPhysics {
 	}
 
 	@SuppressWarnings("deprecation")
-	private static void evaluateEnvironment(final int sourceID, final float posX, final float posY, final float posZ, final SoundCategory category, final String name) {
+	static void evaluateEnvironment(final int sourceID, final float posX, final float posY, final float posZ, final SoundCategory category, final String name) {
 		try {
-			if (mc.player == null || mc.world == null || posY <= 0 || category == SoundCategory.RECORDS
+			if (AsmHooks.mc.player == null || AsmHooks.mc.world == null || posY <= 0 || category == SoundCategory.RECORDS
 					|| category == SoundCategory.MUSIC) {
 				// posY <= 0 as a condition has to be there: Ingame
 				// menu clicks do have a player and world present
@@ -633,13 +461,13 @@ public class SoundPhysics {
 			float directCutoff = 1.0f;
 			final float absorptionCoeff = (float) (Config.globalBlockAbsorption.get() * 3.0f);
 
-			final Vec3d playerPos = new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ);
+			final Vec3d playerPos = new Vec3d(AsmHooks.mc.player.posX, AsmHooks.mc.player.posY + AsmHooks.mc.player.getEyeHeight(), AsmHooks.mc.player.posZ);
 			final Vec3d soundPos = offsetSoundByName(posX, posY, posZ, playerPos, name, category);
 			final Vec3d normalToPlayer = playerPos.subtract(soundPos).normalize();
 
 			float snowFactor = 0.0f;
 
-			if (mc.world.isRaining()) {
+			if (AsmHooks.mc.world.isRaining()) {
 				final Vec3d middlePos = playerPos.add(soundPos).scale(0.5);
 				final BlockPos playerPosBlock = new BlockPos(playerPos);
 				final BlockPos soundPosBlock = new BlockPos(soundPos);
@@ -654,7 +482,7 @@ public class SoundPhysics {
 
 			if (snowFactor > 0.0f) {
 				airAbsorptionFactor = (float) Math.max(
-						Config.snowAirAbsorptionFactor.get() * mc.world.getRainStrength(1.0f) * snowFactor,
+						Config.snowAirAbsorptionFactor.get() * AsmHooks.mc.world.getRainStrength(1.0f) * snowFactor,
 						airAbsorptionFactor);
 			}
 
@@ -679,18 +507,18 @@ public class SoundPhysics {
 			float occlusionAccumulation = 0.0f;
 
 			for (int i = 0; i < 10; i++) {
-				final RayTraceContext rayTraceContext = new RayTraceContext(rayOrigin, playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, mc.player);
-				final BlockRayTraceResult rayHit = mc.world.rayTraceBlocks(rayTraceContext);
+				final RayTraceContext rayTraceContext = new RayTraceContext(rayOrigin, playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, AsmHooks.mc.player);
+				final BlockRayTraceResult rayHit = AsmHooks.mc.world.rayTraceBlocks(rayTraceContext);
 
 				if (rayHit == null) {
 					break;
 				}
 
-				final Block blockHit = mc.world.getBlockState(rayHit.getPos()).getBlock();
+				final Block blockHit = AsmHooks.mc.world.getBlockState(rayHit.getPos()).getBlock();
 
 				float blockOcclusion = 1.0f;
 
-				if (!blockHit.isOpaqueCube(blockHit.getDefaultState(), mc.world.getWorld(), rayHit.getPos() )) {
+				if (!blockHit.isOpaqueCube(blockHit.getDefaultState(), AsmHooks.mc.world.getWorld(), rayHit.getPos() )) {
 					// log("not a solid block!");
 					blockOcclusion *= 0.15f;
 				}
@@ -715,7 +543,7 @@ public class SoundPhysics {
 			float sendCutoff2 = 1.0f;
 			float sendCutoff3 = 1.0f;
 
-			if (mc.player.isInWater()) {
+			if (AsmHooks.mc.player.isInWater()) {
 				directCutoff *= 1.0f - Config.underwaterFilter.get();
 			}
 
@@ -756,7 +584,7 @@ public class SoundPhysics {
 
 				final RayTraceContext rayTraceContext = new RayTraceContext(rayStart, rayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
 
-				final BlockRayTraceResult rayHit = mc.world.rayTraceBlocks(rayTraceContext);
+				final BlockRayTraceResult rayHit = AsmHooks.mc.world.rayTraceBlocks(rayTraceContext);
 
 				if (rayHit != null) {
 					final double rayLength = soundPos.distanceTo(rayHit.getHitVec());
@@ -780,7 +608,7 @@ public class SoundPhysics {
 
 						final RayTraceContext rayTraceSecondaryContext = new RayTraceContext(newRayStart,  newRayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
 
-						final BlockRayTraceResult newRayHit = mc.world.rayTraceBlocks(rayTraceSecondaryContext);
+						final BlockRayTraceResult newRayHit = AsmHooks.mc.world.rayTraceBlocks(rayTraceSecondaryContext);
 
 						float energyTowardsPlayer = 0.25f;
 						final Double blockReflectivity = getBlockReflectivity(lastHitBlock);
@@ -810,7 +638,7 @@ public class SoundPhysics {
 
 								final RayTraceContext rayTraceFinalContext = new RayTraceContext(finalRayStart,  playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
 
-								final RayTraceResult finalRayHit = mc.world.rayTraceBlocks(rayTraceFinalContext);
+								final RayTraceResult finalRayHit = AsmHooks.mc.world.rayTraceBlocks(rayTraceFinalContext);
 
 								if (finalRayHit == null) {
 									// log("Secondary ray hit the player!");
@@ -891,7 +719,7 @@ public class SoundPhysics {
 			sendGain2 *= (float) Math.pow(sendCutoff2, 0.1);
 			sendGain3 *= (float) Math.pow(sendCutoff3, 0.1);
 
-			if (mc.player.isInWater()) {
+			if (AsmHooks.mc.player.isInWater()) {
 				sendCutoff0 *= 0.4f;
 				sendCutoff1 *= 0.4f;
 				sendCutoff2 *= 0.4f;
