@@ -28,16 +28,18 @@ import org.apache.logging.log4j.LogManager;
 
 //import net.minecraft.launchwrapper.IClassTransformer;
 
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.ModContainer;
+//import net.minecraftforge.fml.Loader;
+//import net.minecraftforge.fml.common.ModContainer;
 
-public class CoreModInjector implements IClassTransformer {
+
+public class CoreModInjector { // implements IClassTransformer {
 
 	public static final Logger logger = LogManager.getLogger(SoundPhysics.modid+"injector");
 
+/*
 	public static boolean shouldPatchDS() {
 		if (Loader.isModLoaded("dsurround")) {
-			Map<String,ModContainer> mods = Loader.instance().getIndexedModList();
+			Map<String, ModContainer> mods = Loader.instance().getIndexedModList();
 			String version[] = mods.get("dsurround").getVersion().split("\\.");
 			if (version.length < 2) {
 				logError("What the hell, DS's version is not properly formatted ?");
@@ -47,8 +49,8 @@ public class CoreModInjector implements IClassTransformer {
 		}
 		return false;
 	}
+*/
 
-	@Override
 	public byte[] transform(final String obfuscated, final String deobfuscated, byte[] bytes) {
 		if (obfuscated.equals("chm$a")) {
 			// Inside SoundManager.SoundSystemStarterThread
@@ -241,7 +243,7 @@ public class CoreModInjector implements IClassTransformer {
 			// Inside target method, target node: Entity/getSoundCategory
 			bytes = patchMethodInClass(obfuscated, bytes, "a", "(Lqe;FF)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "bK", null, -1, toInject, true, 0, 0, false, -3, -1);
-		} else
+		} /*else
 
 		// Fix for computronics's devices
 		if (obfuscated.equals("pl.asie.lib.audio.StreamingAudioPlayer") && Config.computronicsPatching) {
@@ -397,7 +399,7 @@ public class CoreModInjector implements IClassTransformer {
 			bytes = patchMethodInClass(obfuscated, bytes, "update", "()V", Opcodes.FMUL,
 					AbstractInsnNode.INSN, "", null, -1, toInject, true, 0, 0, false, 0, -1);
 
-			/*toInject = new InsnList();
+			toInject = new InsnList();
 
 			toInject.add(new LdcInsnNode(1.75d));
 			toInject.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -409,9 +411,9 @@ public class CoreModInjector implements IClassTransformer {
 
 			// Target method: update
 			bytes = patchMethodInClass(obfuscated, bytes, "update", "()V", Opcodes.INVOKESPECIAL,
-					AbstractInsnNode.METHOD_INSN, "<init>", "(ILjava/lang/String;FFF)V", -1, toInject, true, 0, 0, false, -5, -1);*/
+					AbstractInsnNode.METHOD_INSN, "<init>", "(ILjava/lang/String;FFF)V", -1, toInject, true, 0, 0, false, -5, -1);
 
-			/*if (Config.dopplerEnabled) { // IR has its own doppler shift so we remove that and just give the velocity to OpenAL so that it does it itself.
+			if (Config.dopplerEnabled) { // IR has its own doppler shift so we remove that and just give the velocity to OpenAL so that it does it itself.
 				toInject = new InsnList();
 
 				toInject.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -431,7 +433,7 @@ public class CoreModInjector implements IClassTransformer {
 				// Target method: update
 				bytes = patchMethodInClass(obfuscated, bytes, "update", "()V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "CommandQueue", null, -1, toInject, false, 108, 1, true, 0, -1);
-			}*/
+			}
 		} else
 
 		if (obfuscated.equals("org.orecruncher.dsurround.client.sound.SoundEffect") && Config.dsPatching && shouldPatchDS()) {
@@ -456,7 +458,7 @@ public class CoreModInjector implements IClassTransformer {
 			// Target method: ConfigSoundInstance
 			bytes = patchMethodInClass(obfuscated, bytes, "<init>", "(Ljava/lang/String;F)V", Opcodes.GETSTATIC,
 					AbstractInsnNode.FIELD_INSN, "", null, -1, toInject, true, 0, 0, true, 0, 1);
-		}
+		}*/
 
 		//System.out.println("[SP Inject] "+obfuscated+" ("+deobfuscated+")");
 
