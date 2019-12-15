@@ -57,6 +57,9 @@ public class CoreModInjector { //implements IClassTransformer {
 			// Target method: playSound
 			// This method call was removed.
 			// it seems setVolume is now only called from SoundHandler
+			//
+			// .. now that more mappings are avaliable, it seems like there is another setVolume in SoundEngine
+			// Used only once inside SoundHandler, in setSoundLevel (Changed names, old name was setVolume)
 			bytes = patchMethodInClass(obfuscated, bytes, "c", "(Lcgt;)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "setVolume", null, -1, toInject, false, 0, 0, false, 0, -1);
 
@@ -73,6 +76,9 @@ public class CoreModInjector { //implements IClassTransformer {
 			// Target method: playSound
 			// This method call was removed.
 			// it seems setVolume is now only called from SoundHandler
+			//
+			// .. now that more mappings are avaliable, it seems like there is another setVolume in SoundEngine
+			// Used only once inside SoundHandler, in setSoundLevel (Changed names, old name was setVolume)
 			bytes = patchMethodInClass(obfuscated, bytes, "c", "(Lcgt;)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "setVolume", null, -1, toInject, false, 0, 0, false, 0, -1);
 

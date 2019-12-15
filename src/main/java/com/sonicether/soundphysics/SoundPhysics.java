@@ -225,7 +225,7 @@ public class SoundPhysics {
 		}
 	}
 
-	static synchronized void setupThread() {
+	public static synchronized void setupThread() {
 		if (source_list == null) source_list = Collections.synchronizedList(new ArrayList<Source>());
 		else source_list.clear();
 
@@ -256,10 +256,12 @@ public class SoundPhysics {
 		}
 	}
 
-	static void setupEFX() {
+	public static void setupEFX() {
 		// Get current context and device
 		final long currentContext = ALC10.alcGetCurrentContext();
+		log("Context: " + currentContext);
 		final long currentDevice = ALC10.alcGetContextsDevice(currentContext);
+		log("Device: " + currentDevice);
 
 		if (ALC10.alcIsExtensionPresent(currentDevice, "ALC_EXT_EFX")) {
 			log("EFX Extension recognized.");
