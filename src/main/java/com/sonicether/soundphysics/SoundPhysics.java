@@ -41,7 +41,7 @@ import org.apache.logging.log4j.LogManager;
 public class SoundPhysics {
 
 	public static final String modid = "soundphysics";
-	public static final String version = "1.0.8";
+	public static final String version = "1.0.8-1";
 	public static final String mcVersion = "1.12.2";
 	public static final String deps = "";
 
@@ -415,10 +415,10 @@ public class SoundPhysics {
 		double tempNormZ = 0;
 
 		if (soundY % 1.0 < 0.001 || stepPattern.matcher(name).matches()) {
-			offsetY = 0.1875;
+			offsetY = 0.225;
 		}
 
-		if (category == SoundCategory.BLOCKS || blockPattern.matcher(name).matches() || 
+		if (category == SoundCategory.BLOCKS || blockPattern.matcher(name).matches() ||
 			(name == "openal" && !AsmHooks.mc.world.isAirBlock(new BlockPos(soundX,soundY,soundZ)))) {
 			// The ray will probably hit the block that it's emitting from
 			// before
@@ -467,9 +467,9 @@ public class SoundPhysics {
 			final Vec3d soundPos = offsetSoundByName(posX, posY, posZ, playerPos, name, category);
 			final Vec3d normalToPlayer = playerPos.subtract(soundPos).normalize();
 
-			float snowFactor = 0.0f;
+			float airAbsorptionFactor = 1.0f;
 
-			if (AsmHooks.mc.world.isRaining()) {
+			if (Config.snowAirAbsorptionFactor > 1.0f && mc.world.isRaining()) {
 				final Vec3d middlePos = playerPos.add(soundPos).scale(0.5);
 				final BlockPos playerPosBlock = new BlockPos(playerPos);
 				final BlockPos soundPosBlock = new BlockPos(soundPos);
@@ -477,15 +477,8 @@ public class SoundPhysics {
 				final int snowingPlayer = isSnowingAt(playerPosBlock,false) ? 1 : 0;
 				final int snowingSound = isSnowingAt(soundPosBlock,false) ? 1 : 0;
 				final int snowingMiddle = isSnowingAt(middlePosBlock,false) ? 1 : 0;
-				snowFactor = snowingPlayer * 0.25f + snowingMiddle * 0.5f + snowingSound * 0.25f;
-			}
-
-			float airAbsorptionFactor = 1.0f;
-
-			if (snowFactor > 0.0f) {
-				airAbsorptionFactor = (float) Math.max(
-						Config.snowAirAbsorptionFactor.get() * AsmHooks.mc.world.getRainStrength(1.0f) * snowFactor,
-						airAbsorptionFactor);
+				final float snowFactor = snowingPlayer * 0.25f + snowingMiddle * 0.5f + snowingSound * 0.25f;
+				airAbsorptionFactor = Math.max(Config.snowAirAbsorptionFactor*mc.world.getRainStrength(1.0f)*snowFactor,airAbsorptionFactor);
 			}
 
 			/*final double distance = playerPos.distanceTo(soundPos);
