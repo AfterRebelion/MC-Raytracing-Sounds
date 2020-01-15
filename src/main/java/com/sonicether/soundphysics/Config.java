@@ -58,28 +58,28 @@ public class Config {
 
 	private static final String categoryGeneral = "General";
 	private static final String categoryPerformance = "Performance";
-	private static final String categoryMaterialProperties = "Material properties";
+	private static final String categoryMaterialProperties = "Materials";
 	private static final String categoryCompatibility = "Compatibility";
 	private static final String categoryMisc = "Misc";
 
-    private static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
-    private static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
 
-    public static ForgeConfigSpec COMMON_CONFIG;
-    public static ForgeConfigSpec CLIENT_CONFIG;
+	public static ForgeConfigSpec COMMON_CONFIG;
+	public static ForgeConfigSpec CLIENT_CONFIG;
 
 	static {
 		COMMON_BUILDER.comment("General settings").push(categoryGeneral);
 		setupGeneral();
-        COMMON_BUILDER.pop();
+		COMMON_BUILDER.pop();
 
 		COMMON_BUILDER.comment("Performance").push(categoryPerformance);
 		setupPerformance();
-        COMMON_BUILDER.pop();
+		COMMON_BUILDER.pop();
 
 		COMMON_BUILDER.comment("Material properties").push(categoryMaterialProperties);
 		setupMaterial();
-        COMMON_BUILDER.pop();
+		COMMON_BUILDER.pop();
 
 		COMMON_BUILDER.comment("Compatibility").push(categoryCompatibility);
 		setupCompatibility();
@@ -89,19 +89,20 @@ public class Config {
 		setupMisc();
 		COMMON_BUILDER.pop();
 
-        COMMON_CONFIG = COMMON_BUILDER.build();
-        CLIENT_CONFIG = CLIENT_BUILDER.build();
+		COMMON_CONFIG = COMMON_BUILDER.build();
+		CLIENT_CONFIG = CLIENT_BUILDER.build();
 	}
 
 	static void loadConfig(ForgeConfigSpec spec, Path path) {
 		final CommentedFileConfig configData = CommentedFileConfig.builder(path)
-                .sync()
-                .autosave()
-                .writingMode(WritingMode.REPLACE)
-                .build();
+				.sync()
+				.autosave()
+				.preserveInsertionOrder()
+				.writingMode(WritingMode.REPLACE)
+				.build();
 
-        configData.load();
-        spec.setConfig(configData);
+		configData.load();
+		spec.setConfig(configData);
 	}
 
 	@SubscribeEvent
@@ -114,7 +115,7 @@ public class Config {
 		rolloffFactor = COMMON_BUILDER.comment("Affects how quiet a sound gets based on distance. Lower values mean distant sounds are louder. 1.0 is the physically correct value.")
 				.defineInRange("Attenuation Factor", 1.0D, 0.2D, 1.0D);
 		globalReverbGain = COMMON_BUILDER.comment("The global volume of simulated reverberations.")
-				.defineInRange("Attenuation Factor", 1.0D, 0.1D, 2.0D);
+				.defineInRange("Global Reverb Gain", 1.0D, 0.1D, 2.0D);
 		globalReverbBrightness = COMMON_BUILDER.comment("The brightness of reverberation. Higher values result in more high frequencies in reverberation. Lower values give a more muffled sound to the reverb.")
 				.defineInRange("Global Reverb Brightness", 1.0D, 0.1D, 2.0D);
 		globalBlockAbsorption = COMMON_BUILDER.comment("The global amount of sound that will be absorbed when traveling through blocks.")
@@ -190,7 +191,7 @@ public class Config {
 		autoSteroDownmixLogging = COMMON_BUILDER.comment("If true, Prints sound name and format of the sounds that get converted")
 		.define("Stereo downmix Logging", false);
 		debugInfoShow = COMMON_BUILDER.comment("If true, Shows sources currently playing in the F3 debug info")
-		.define("Dynamic env. info in F3", false);
+		.define("Dynamic environment info in F3", false);
 		injectorLogging= COMMON_BUILDER.comment("If true, Logs debug info about the injector")
 		.define("Injector Logging", false);
 		

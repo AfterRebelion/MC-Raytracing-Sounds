@@ -334,7 +334,7 @@ public class SoundPhysics {
 		if (check_rain && !AsmHooks.mc.world.isRaining()) {
 			return false;
 		}
-		else if (!AsmHooks.mc.world.isSkyLightMax(position))
+		else if (!AsmHooks.mc.world.isSkyVisible(position))
 		{
 			return false;
 		}
@@ -463,7 +463,8 @@ public class SoundPhysics {
 			float directCutoff = 1.0f;
 			final float absorptionCoeff = (float) (Config.globalBlockAbsorption.get() * 3.0f);
 
-			final Vec3d playerPos = new Vec3d(AsmHooks.mc.player.posX, AsmHooks.mc.player.posY + AsmHooks.mc.player.getEyeHeight(), AsmHooks.mc.player.posZ);
+			final BlockPos mcplayerpos = AsmHooks.mc.player.getPosition();
+			final Vec3d playerPos = new Vec3d(mcplayerpos.getX(), mcplayerpos.getY() + AsmHooks.mc.player.getEyeHeight(), mcplayerpos.getZ());
 			final Vec3d soundPos = offsetSoundByName(posX, posY, posZ, playerPos, name, category);
 			final Vec3d normalToPlayer = playerPos.subtract(soundPos).normalize();
 
