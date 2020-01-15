@@ -62,6 +62,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			// Target method: Constructor
 			// It seems like they directly implemented SoundSystem constructor, so this should be changed to
 			// be injected there in SoundSystem.
+			// More like func_216404_a... maybe? Seems to be the init method.
 			bytes = patchMethodInClass(obfuscated, bytes, "<init>", "(Lchm;)V", Opcodes.INVOKESPECIAL,
 					AbstractInsnNode.METHOD_INSN, "<init>", null, -1, toInject, false, 0, 0, false, 0, -1);
 		} else

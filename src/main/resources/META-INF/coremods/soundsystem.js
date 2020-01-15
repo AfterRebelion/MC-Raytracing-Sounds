@@ -4,7 +4,7 @@ function initializeCoreMod() {
 			'target': {
 				'type': 'METHOD',
 				'class': 'net.minecraft.client.audio.SoundSystem',
-				'methodName': '<init>', // Constructor
+				'methodName': 'func_216404_a', // Init
 				'methodDesc': '()V'
 			},
 			'transformer': function (methodNode) {
@@ -24,10 +24,10 @@ function initializeCoreMod() {
 
 				var isTransformed = ASMAPI.insertInsnList(
 					methodNode,
-					ASMAPI.MethodType.SPECIAL,
-					"java/lang/Object",
-					"<init>", // constructor
-					"()V",
+					ASMAPI.MethodType.STATIC,
+					"net/minecraft/client/audio/SoundSystem",
+					ASMAPI.mapMethod("func_216406_f"), // func_216483_a
+					"()J",
 					newInstructions,
 					ASMAPI.InsertMode.INSERT_AFTER
 				)
