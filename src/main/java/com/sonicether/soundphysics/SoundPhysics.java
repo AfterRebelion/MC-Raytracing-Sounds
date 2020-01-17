@@ -1,41 +1,37 @@
 package com.sonicether.soundphysics;
 
-import java.util.regex.Pattern;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.ListIterator;
-import java.util.Collections;
-import java.nio.FloatBuffer;
-
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.SoundType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.*;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.ALC10;
-import org.lwjgl.BufferUtils;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import org.lwjgl.openal.EXTEfx;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.regex.Pattern;
 
 @Mod(SoundPhysics.modid)
 public class SoundPhysics {
@@ -115,7 +111,7 @@ public class SoundPhysics {
 		public int size;
 		public int bufferID;
 
-		public Source(int sid,float px,float py,float pz,SoundCategory cat,String n) {
+		public Source(int sid, float px, float py, float pz, SoundCategory cat, String n) {
 			this.sourceID = sid;
 			this.posX = px;
 			this.posY = py;
@@ -154,18 +150,18 @@ public class SoundPhysics {
 						//boolean finished = source.size == byteoff;
 						if (state == AL10.AL_PLAYING) {
 							FloatBuffer pos = BufferUtils.createFloatBuffer(3);
-							AL10.alGetSourcef(source.sourceID,AL10.AL_POSITION,pos);
+							AL10.alGetSourcef(source.sourceID, AL10.AL_POSITION, pos);
 							source.posX = pos.get(0);
 							source.posY = pos.get(1);
 							source.posZ = pos.get(2);
-							evaluateEnvironment(source.sourceID,source.posX,source.posY,source.posZ,source.category,source.name);
+							evaluateEnvironment(source.sourceID, source.posX, source.posY, source.posZ, source.category, source.name);
 						} else /*if (state == AL10.AL_STOPPED)*/ {
 							iter.remove();
 						}
 					}
 				}
 				try {
-					Thread.sleep(1000/Config.dynamicEnvironementEvalutaionFrequency.get());
+					Thread.sleep(1000 / Config.dynamicEnvironementEvalutaionFrequency.get());
 				} catch (Exception e) {
 					logError(String.valueOf(e));
 				}
@@ -198,14 +194,14 @@ public class SoundPhysics {
 		public static void onDebugOverlay(RenderGameOverlayEvent.Text event) {
 			if (AsmHooks.mc != null && AsmHooks.mc.gameSettings.showDebugInfo && Config.dynamicEnvironementEvalutaion.get() && Config.debugInfoShow.get()) {
 				event.getLeft().add("");
-				event.getLeft().add("[SoundPhysics] "+String.valueOf(source_list.size())+" Sources");
+				event.getLeft().add("[SoundPhysics] " + String.valueOf(source_list.size()) + " Sources");
 				event.getLeft().add("[SoundPhysics] Source list :");
 				synchronized (source_list) {
 					ListIterator<Source> iter = source_list.listIterator();
-					while (iter.hasNext())  {
+					while (iter.hasNext()) {
 						Source s = iter.next();
-						Vec3d tmp = new Vec3d(s.posX,s.posY,s.posZ);
-						event.getLeft().add(String.valueOf(s.sourceID)+"-"+s.category.toString()+"-"+s.name+"-"+tmp.toString());
+						Vec3d tmp = new Vec3d(s.posX, s.posY, s.posZ);
+						event.getLeft().add(String.valueOf(s.sourceID) + "-" + s.category.toString() + "-" + s.name + "-" + tmp.toString());
 						/*int buffq = AL10.alGetSourcei(s.sourceID, AL10.AL_BUFFERS_QUEUED);
 						int buffp = AL10.alGetSourcei(s.sourceID, AL10.AL_BUFFERS_PROCESSED);
 						int sampoff = AL10.alGetSourcei(s.sourceID, AL11.AL_SAMPLE_OFFSET);
@@ -323,27 +319,19 @@ public class SoundPhysics {
 
 	// Unused
 	@SuppressWarnings("unused")
-	private static boolean isSnowingAt(BlockPos position)
-	{
+	private static boolean isSnowingAt(BlockPos position) {
 		return isSnowingAt(position, true);
 	}
 
 	// Copy of isRainingAt
-	private static boolean isSnowingAt(BlockPos position, boolean check_rain)
-	{
+	private static boolean isSnowingAt(BlockPos position, boolean check_rain) {
 		if (check_rain && !AsmHooks.mc.world.isRaining()) {
 			return false;
-		}
-		else if (!AsmHooks.mc.world.isSkyVisible(position))
-		{
+		} else if (!AsmHooks.mc.world.isSkyVisible(position)) {
 			return false;
-		}
-		else if (AsmHooks.mc.world.getHeight(Heightmap.Type.MOTION_BLOCKING, position).getY() > position.getY())
-		{
+		} else if (AsmHooks.mc.world.getHeight(Heightmap.Type.MOTION_BLOCKING, position).getY() > position.getY()) {
 			return false;
-		}
-		else
-		{
+		} else {
 			/*boolean cansnow = mc.world.canSnowAt(position, false);
 			if (mc.world.getBiome(position).getEnableSnow() && cansnow) return true;
 			else if (cansnow) return true;
@@ -404,7 +392,7 @@ public class SoundPhysics {
 	}
 
 	private static Vec3d offsetSoundByName(final double soundX, final double soundY, final double soundZ,
-			final Vec3d playerPos, final String name, final SoundCategory category) {
+										   final Vec3d playerPos, final String name, final SoundCategory category) {
 		double offsetX = 0.0;
 		double offsetY = 0.0;
 		double offsetZ = 0.0;
@@ -419,7 +407,7 @@ public class SoundPhysics {
 		}
 
 		if (category == SoundCategory.BLOCKS || blockPattern.matcher(name).matches() ||
-			(name == "openal" && !AsmHooks.mc.world.isAirBlock(new BlockPos(soundX,soundY,soundZ)))) {
+				(name == "openal" && !AsmHooks.mc.world.isAirBlock(new BlockPos(soundX, soundY, soundZ)))) {
 			// The ray will probably hit the block that it's emitting from
 			// before
 			// escaping. Offset the ray start position towards the player by the
@@ -475,11 +463,11 @@ public class SoundPhysics {
 				final BlockPos playerPosBlock = new BlockPos(playerPos);
 				final BlockPos soundPosBlock = new BlockPos(soundPos);
 				final BlockPos middlePosBlock = new BlockPos(middlePos);
-				final int snowingPlayer = isSnowingAt(playerPosBlock,false) ? 1 : 0;
-				final int snowingSound = isSnowingAt(soundPosBlock,false) ? 1 : 0;
-				final int snowingMiddle = isSnowingAt(middlePosBlock,false) ? 1 : 0;
+				final int snowingPlayer = isSnowingAt(playerPosBlock, false) ? 1 : 0;
+				final int snowingSound = isSnowingAt(soundPosBlock, false) ? 1 : 0;
+				final int snowingMiddle = isSnowingAt(middlePosBlock, false) ? 1 : 0;
 				final float snowFactor = snowingPlayer * 0.25f + snowingMiddle * 0.5f + snowingSound * 0.25f;
-				airAbsorptionFactor = (float) Math.max(Config.snowAirAbsorptionFactor.get() * AsmHooks.mc.world.getRainStrength(1.0f) * snowFactor,airAbsorptionFactor);
+				airAbsorptionFactor = (float) Math.max(Config.snowAirAbsorptionFactor.get() * AsmHooks.mc.world.getRainStrength(1.0f) * snowFactor, airAbsorptionFactor);
 			}
 
 			/*final double distance = playerPos.distanceTo(soundPos);
@@ -514,7 +502,7 @@ public class SoundPhysics {
 
 				float blockOcclusion = 1.0f;
 
-				if (!blockHit.isOpaqueCube(blockHit.getDefaultState(), AsmHooks.mc.world.getWorld(), rayHit.getPos() )) {
+				if (!blockHit.isOpaqueCube(blockHit.getDefaultState(), AsmHooks.mc.world.getWorld(), rayHit.getPos())) {
 					// log("not a solid block!");
 					blockOcclusion *= 0.15f;
 				}
@@ -602,7 +590,7 @@ public class SoundPhysics {
 						final Vec3d newRayEnd = new Vec3d(newRayStart.x + newRayDir.x * maxDistance,
 								newRayStart.y + newRayDir.y * maxDistance, newRayStart.z + newRayDir.z * maxDistance);
 
-						final RayTraceContext rayTraceSecondaryContext = new RayTraceContext(newRayStart,  newRayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
+						final RayTraceContext rayTraceSecondaryContext = new RayTraceContext(newRayStart, newRayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
 
 						final BlockRayTraceResult newRayHit = AsmHooks.mc.world.rayTraceBlocks(rayTraceSecondaryContext);
 
@@ -632,7 +620,7 @@ public class SoundPhysics {
 								final Vec3d finalRayStart = new Vec3d(lastHitPos.x + lastHitNormal.x * 0.01,
 										lastHitPos.y + lastHitNormal.y * 0.01, lastHitPos.z + lastHitNormal.z * 0.01);
 
-								final RayTraceContext rayTraceFinalContext = new RayTraceContext(finalRayStart,  playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
+								final RayTraceContext rayTraceFinalContext = new RayTraceContext(finalRayStart, playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, null);
 
 								final RayTraceResult finalRayHit = AsmHooks.mc.world.rayTraceBlocks(rayTraceFinalContext);
 
@@ -724,7 +712,7 @@ public class SoundPhysics {
 
 			setEnvironment(sourceID, sendGain0, sendGain1, sendGain2, sendGain3, sendCutoff0, sendCutoff1, sendCutoff2,
 					sendCutoff3, directCutoff, directGain, airAbsorptionFactor);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logError("Error while evaluation environment:");
 			e.printStackTrace();
 			setEnvironment(sourceID, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -732,9 +720,9 @@ public class SoundPhysics {
 	}
 
 	private static void setEnvironment(final int sourceID, final float sendGain0, final float sendGain1,
-			final float sendGain2, final float sendGain3, final float sendCutoff0, final float sendCutoff1,
-			final float sendCutoff2, final float sendCutoff3, final float directCutoff, final float directGain,
-			final float airAbsorptionFactor) {
+									   final float sendGain2, final float sendGain3, final float sendCutoff0, final float sendCutoff1,
+									   final float sendCutoff2, final float sendCutoff3, final float directCutoff, final float directGain,
+									   final float airAbsorptionFactor) {
 		// Set reverb send filter values and set source to send to all reverb fx
 		// slots
 		EXTEfx.alFilterf(sendFilter0, EXTEfx.AL_LOWPASS_GAIN, sendGain0);
@@ -757,7 +745,7 @@ public class SoundPhysics {
 		EXTEfx.alFilterf(directFilter0, EXTEfx.AL_LOWPASS_GAINHF, directCutoff);
 		AL10.alSourcei(sourceID, EXTEfx.AL_DIRECT_FILTER, directFilter0);
 
-		AL10.alSourcef(sourceID, EXTEfx.AL_AIR_ABSORPTION_FACTOR, (float)MathHelper.clamp(Config.airAbsorption.get() * airAbsorptionFactor,0.0f,10.0f));
+		AL10.alSourcef(sourceID, EXTEfx.AL_AIR_ABSORPTION_FACTOR, (float) MathHelper.clamp(Config.airAbsorption.get() * airAbsorptionFactor, 0.0f, 10.0f));
 	}
 
 	/**
@@ -819,24 +807,24 @@ public class SoundPhysics {
 		String errorName;
 
 		switch (error) {
-		case AL10.AL_INVALID_NAME:
-			errorName = "AL_INVALID_NAME";
-			break;
-		case AL10.AL_INVALID_ENUM:
-			errorName = "AL_INVALID_ENUM";
-			break;
-		case AL10.AL_INVALID_VALUE:
-			errorName = "AL_INVALID_VALUE";
-			break;
-		case AL10.AL_INVALID_OPERATION:
-			errorName = "AL_INVALID_OPERATION";
-			break;
-		case AL10.AL_OUT_OF_MEMORY:
-			errorName = "AL_OUT_OF_MEMORY";
-			break;
-		default:
-			errorName = Integer.toString(error);
-			break;
+			case AL10.AL_INVALID_NAME:
+				errorName = "AL_INVALID_NAME";
+				break;
+			case AL10.AL_INVALID_ENUM:
+				errorName = "AL_INVALID_ENUM";
+				break;
+			case AL10.AL_INVALID_VALUE:
+				errorName = "AL_INVALID_VALUE";
+				break;
+			case AL10.AL_INVALID_OPERATION:
+				errorName = "AL_INVALID_OPERATION";
+				break;
+			case AL10.AL_OUT_OF_MEMORY:
+				errorName = "AL_OUT_OF_MEMORY";
+				break;
+			default:
+				errorName = Integer.toString(error);
+				break;
 		}
 
 		logError(errorMessage + " OpenAL error " + errorName);

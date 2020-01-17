@@ -1,30 +1,19 @@
 package com.sonicether.soundphysics;
 
-import java.util.Map;
-import java.util.Iterator;
-import java.util.ListIterator;
-
-import java.io.StringWriter;
-import java.io.PrintWriter;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
-
-import org.objectweb.asm.util.TraceMethodVisitor;
+import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
+import org.objectweb.asm.util.TraceMethodVisitor;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 //import net.minecraft.launchwrapper.IClassTransformer;
 
@@ -34,7 +23,7 @@ import org.apache.logging.log4j.LogManager;
 
 public class CoreModInjector { // implements IClassTransformer {
 
-	public static final Logger logger = LogManager.getLogger(SoundPhysics.modid+"injector");
+	public static final Logger logger = LogManager.getLogger(SoundPhysics.modid + "injector");
 
 /*
 	public static boolean shouldPatchDS() {
@@ -65,10 +54,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			// More like func_216404_a... maybe? Seems to be the init method.
 			bytes = patchMethodInClass(obfuscated, bytes, "<init>", "(Lchm;)V", Opcodes.INVOKESPECIAL,
 					AbstractInsnNode.METHOD_INSN, "<init>", null, -1, toInject, false, 0, 0, false, 0, -1);
-		} else
-
-	// ================================================================================================
-		if (obfuscated.equals("chm")) {
+		} else if (obfuscated.equals("chm")) {
 			// Inside SoundEngine
 			InsnList toInject = new InsnList();
 			toInject.add(new VarInsnNode(Opcodes.ALOAD, 7));
@@ -84,7 +70,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			bytes = patchMethodInClass(obfuscated, bytes, "c", "(Lcgt;)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "setVolume", null, -1, toInject, false, 0, 0, false, 0, -1);
 
-	// ================================================================================================
+			// ================================================================================================
 			toInject = new InsnList();
 			toInject.add(new VarInsnNode(Opcodes.ALOAD, 4));
 			toInject.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "cgq", "a", "()Lnf;", false));
@@ -103,7 +89,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			bytes = patchMethodInClass(obfuscated, bytes, "c", "(Lcgt;)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "setVolume", null, -1, toInject, false, 0, 0, false, 0, -1);
 
-	// ================================================================================================
+			// ================================================================================================
 			toInject = new InsnList();
 			toInject.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/sonicether/soundphysics/SoundPhysics",
 					"globalVolumeMultiplier", "F"));
@@ -114,7 +100,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			bytes = patchMethodInClass(obfuscated, bytes, "c", "(Lcgt;)V", Opcodes.INVOKESPECIAL,
 					AbstractInsnNode.METHOD_INSN, "e", "(Lcgt;)F", -1, toInject, false, 0, 0, false, 0, -1);
 
-	// ================================================================================================
+			// ================================================================================================
 			/*toInject = new InsnList();
 			toInject.add(new VarInsnNode(Opcodes.ALOAD, 1));
 			toInject.add(new VarInsnNode(Opcodes.FLOAD, 2));
@@ -124,10 +110,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			// This function has been added by forge so the name isn't obfuscated
 			bytes = patchMethodInClass(obfuscated, bytes, "setListener", "(Lvg;F)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "setListenerOrientation", null, -1, toInject, false, 0, 0, false, 0, -1);*/
-		} else
-
-	// ================================================================================================
-		if (obfuscated.equals("paulscode.sound.libraries.SourceLWJGLOpenAL")) {
+		} else if (obfuscated.equals("paulscode.sound.libraries.SourceLWJGLOpenAL")) {
 			// Inside SourceLWJGLOpenAL
 			// yeah... this is gone
 			InsnList toInject = new InsnList();
@@ -157,11 +140,8 @@ public class CoreModInjector { // implements IClassTransformer {
 			// Target method: play
 			bytes = patchMethodInClass(obfuscated, bytes, "play", "(Lpaulscode/sound/Channel;)V", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "play", null, -1, toInject, false, 0, 0, false, 0, -1);
-		} else
-
-	// ================================================================================================
-		// Convert stero sounds to mono
-		if (obfuscated.equals("paulscode.sound.libraries.LibraryLWJGLOpenAL") && Config.autoSteroDownmix.get()) {
+			// Convert stero sounds to mono
+		} else if (obfuscated.equals("paulscode.sound.libraries.LibraryLWJGLOpenAL") && Config.autoSteroDownmix.get()) {
 			// Inside LibraryLWJGLOpenAL
 			// This is also gone
 			InsnList toInject = new InsnList();
@@ -180,7 +160,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			bytes = patchMethodInClass(obfuscated, bytes, "loadSound", "(Lpaulscode/sound/FilenameURL;)Z", Opcodes.INVOKEINTERFACE,
 					AbstractInsnNode.METHOD_INSN, "cleanup", null, -1, toInject, false, 0, 0, false, 0, -1);
 
-	// ================================================================================================
+			// ================================================================================================
 			toInject = new InsnList();
 
 			toInject.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -194,10 +174,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			// Target method: loadSound
 			bytes = patchMethodInClass(obfuscated, bytes, "loadSound", "(Lpaulscode/sound/SoundBuffer;Ljava/lang/String;)Z", Opcodes.INVOKEVIRTUAL,
 					AbstractInsnNode.METHOD_INSN, "getChannels", null, -1, toInject, true, 0, 0, false, -12, -1);
-		} else
-
-	// ================================================================================================
-		if (obfuscated.equals("paulscode.sound.SoundSystem")) {
+		} else if (obfuscated.equals("paulscode.sound.SoundSystem")) {
 			// Inside SoundSystem
 			InsnList toInject = new InsnList();
 
@@ -210,10 +187,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			bytes = patchMethodInClass(obfuscated, bytes, "newSource",
 					"(ZLjava/lang/String;Ljava/net/URL;Ljava/lang/String;ZFFFIF)V", Opcodes.INVOKESPECIAL,
 					AbstractInsnNode.METHOD_INSN, "<init>", null, -1, toInject, true, 2, 0, false, 0, -1);
-		} else
-
-	// ================================================================================================
-		if (obfuscated.equals("pl")) {
+		} else if (obfuscated.equals("pl")) {
 			// Inside PlayerList
 			InsnList toInject = new InsnList();
 
@@ -226,10 +200,7 @@ public class CoreModInjector { // implements IClassTransformer {
 			// Target method: sendToAllNearExcept
 			bytes = patchMethodInClass(obfuscated, bytes, "a", "(Laed;DDDDILht;)V", Opcodes.DCMPG,
 					AbstractInsnNode.INSN, "", "", -1, toInject, true, 0, 0, false, 0, -1);
-		} else
-
-	// ================================================================================================
-		if (obfuscated.equals("vg")) {
+		} else if (obfuscated.equals("vg")) {
 			// Inside Entity
 			InsnList toInject = new InsnList();
 
@@ -469,7 +440,7 @@ public class CoreModInjector { // implements IClassTransformer {
 	private static Printer printer = new Textifier();
 	private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);
 
-	public static String insnToString(AbstractInsnNode insn){
+	public static String insnToString(AbstractInsnNode insn) {
 		insn.accept(mp);
 		StringWriter sw = new StringWriter();
 		printer.print(new PrintWriter(sw));
@@ -478,11 +449,11 @@ public class CoreModInjector { // implements IClassTransformer {
 	}
 
 	private byte[] patchMethodInClass(String className, final byte[] bytes, final String targetMethod,
-			final String targetMethodSignature, final int targetNodeOpcode, final int targetNodeType,
-			final String targetInvocationMethodName, final String targetInvocationMethodSignature, final int targetVarNodeIndex,
-			final InsnList instructionsToInject, final boolean insertBefore, final int nodesToDeleteBefore,
-			final int nodesToDeleteAfter, final boolean deleteTargetNode, final int targetNodeOffset, final int targetNodeNumber) {
-		log("Patching class : "+className);
+									  final String targetMethodSignature, final int targetNodeOpcode, final int targetNodeType,
+									  final String targetInvocationMethodName, final String targetInvocationMethodSignature, final int targetVarNodeIndex,
+									  final InsnList instructionsToInject, final boolean insertBefore, final int nodesToDeleteBefore,
+									  final int nodesToDeleteAfter, final boolean deleteTargetNode, final int targetNodeOffset, final int targetNodeNumber) {
+		log("Patching class : " + className);
 
 		final ClassNode classNode = new ClassNode();
 		final ClassReader classReader = new ClassReader(bytes);
@@ -585,7 +556,7 @@ public class CoreModInjector { // implements IClassTransformer {
 				break;
 			}
 		}
-		log("Class finished : "+className);
+		log("Class finished : " + className);
 
 		final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		classNode.accept(writer);

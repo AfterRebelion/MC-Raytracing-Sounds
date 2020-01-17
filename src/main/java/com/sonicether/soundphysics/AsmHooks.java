@@ -57,7 +57,7 @@ public class AsmHooks {
 	 * CALLED BY ASM INJECTED CODE!
 	 */
 	public static void setLastSoundName(final String soundName, final String eventName) {
-		lastSoundName = eventName+"|"+soundName.split(":")[1]; // Quick and dirty hack to check the event and sound name
+		lastSoundName = eventName + "|" + soundName.split(":")[1]; // Quick and dirty hack to check the event and sound name
 	}
 
 	/**
@@ -88,13 +88,15 @@ public class AsmHooks {
 	 */
 	public static void onPlaySound(final float posX, final float posY, final float posZ, final int sourceID, SoundCategory soundCat, String soundName) {
 		//log(String.valueOf(posX)+" "+String.valueOf(posY)+" "+String.valueOf(posZ)+" - "+String.valueOf(sourceID)+" - "+soundCat.toString()+" - "+soundName);
-		if (Config.noteBlockEnable.get() && soundCat == SoundCategory.RECORDS && noteBlockPattern.matcher(soundName).matches()) soundCat = SoundCategory.BLOCKS;
-		evaluateEnvironment(sourceID, posX, posY, posZ,soundCat,soundName);
+		if (Config.noteBlockEnable.get() && soundCat == SoundCategory.RECORDS && noteBlockPattern.matcher(soundName).matches())
+			soundCat = SoundCategory.BLOCKS;
+		evaluateEnvironment(sourceID, posX, posY, posZ, soundCat, soundName);
 		if (!Config.dynamicEnvironementEvalutaion.get()) return;
 		if ((mc.player == null || mc.world == null || posY <= 0 || soundCat == SoundCategory.RECORDS
-				|| soundCat == SoundCategory.MUSIC) || (Config.skipRainOcclusionTracing.get() && rainPattern.matcher(soundName).matches())) return;
+				|| soundCat == SoundCategory.MUSIC) || (Config.skipRainOcclusionTracing.get() && rainPattern.matcher(soundName).matches()))
+			return;
 		if (clickPattern.matcher(soundName).matches() || uiPattern.matcher(soundName).matches()) return;
-		SoundPhysics.Source tmp = new SoundPhysics.Source(sourceID,posX,posY,posZ,soundCat,soundName);
+		SoundPhysics.Source tmp = new SoundPhysics.Source(sourceID, posX, posY, posZ, soundCat, soundName);
 		source_check_add(tmp);
 	}
 
@@ -105,7 +107,8 @@ public class AsmHooks {
 		if (buff == null || buff.field_216476_b.getChannels() == 1 || !Config.autoSteroDownmix.get()) return buff;
 		if (mc.player == null || mc.world == null || lastSoundCategory == SoundCategory.RECORDS
 				| lastSoundCategory == SoundCategory.MUSIC || uiPattern.matcher(filename).matches() || clickPattern.matcher(filename).matches()) {
-			if (Config.autoSteroDownmixLogging.get()) log("Not converting sound '"+filename+"'("+buff.field_216476_b.toString()+")");
+			if (Config.autoSteroDownmixLogging.get())
+				log("Not converting sound '" + filename + "'(" + buff.field_216476_b.toString() + ")");
 			return buff;
 		}
 		AudioFormat orignalformat = buff.field_216476_b;
@@ -113,17 +116,18 @@ public class AsmHooks {
 		boolean bigendian = orignalformat.isBigEndian();
 		AudioFormat monoformat = new AudioFormat(orignalformat.getEncoding(), orignalformat.getSampleRate(), bits,
 				1, orignalformat.getFrameSize(), orignalformat.getFrameRate(), bigendian);
-		if (Config.autoSteroDownmixLogging.get()) log("Converting sound '"+filename+"'("+orignalformat.toString()+") to mono ("+monoformat.toString()+")");
+		if (Config.autoSteroDownmixLogging.get())
+			log("Converting sound '" + filename + "'(" + orignalformat.toString() + ") to mono (" + monoformat.toString() + ")");
 
 		ByteBuffer bb = buff.field_216475_a;
 		bb.order(bigendian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
 		if (bits == 8) {
-			for (int i = 0; i < bb.array().length; i+=2) {
-				bb.put(i/2,(byte)((bb.get(i)+bb.get(i+1))/2));
+			for (int i = 0; i < bb.array().length; i += 2) {
+				bb.put(i / 2, (byte) ((bb.get(i) + bb.get(i + 1)) / 2));
 			}
 		} else if (bits == 16) {
-			for (int i = 0; i < bb.array().length; i+=4) {
-				bb.putShort((i/2),(short)((bb.getShort(i)+bb.getShort(i+2))/2));
+			for (int i = 0; i < bb.array().length; i += 4) {
+				bb.putShort((i / 2), (short) ((bb.getShort(i) + bb.getShort(i + 2)) / 2));
 			}
 		}
 		buff.field_216476_b = monoformat;
