@@ -47,10 +47,29 @@ public class SoundPhysics {
 
 	protected static final Pattern rainPattern = Pattern.compile(".*rain.*");
 	protected static final Pattern stepPattern = Pattern.compile(".*step.*");
-	private static final Pattern blockPattern = Pattern.compile(".*block.*");
+	protected static final Pattern blockPattern = Pattern.compile(".*block.*");
 	protected static final Pattern uiPattern = Pattern.compile(".*\\/ui\\/.*");
 	protected static final Pattern clickPattern = Pattern.compile(".*random.click.*");
 	protected static final Pattern noteBlockPattern = Pattern.compile(".*block.note.*");
+
+	private static int auxFXSlot0;
+	private static int auxFXSlot1;
+	private static int auxFXSlot2;
+	private static int auxFXSlot3;
+	private static int reverb0;
+	private static int reverb1;
+	private static int reverb2;
+	private static int reverb3;
+	private static int directFilter0;
+	private static int sendFilter0;
+	private static int sendFilter1;
+	private static int sendFilter2;
+	private static int sendFilter3;
+
+	private static ProcThread proc_thread;
+	private static volatile boolean thread_alive;
+	private static volatile boolean thread_signal_death;
+	private static volatile List<Source> source_list;
 
 	public SoundPhysics() {
 		// Register the setup method for modloading
@@ -80,96 +99,6 @@ public class SoundPhysics {
 		onServer = true;
 	}
 
-	private static int auxFXSlot0;
-	private static int auxFXSlot1;
-	private static int auxFXSlot2;
-	private static int auxFXSlot3;
-	private static int reverb0;
-	private static int reverb1;
-	private static int reverb2;
-	private static int reverb3;
-	private static int directFilter0;
-	private static int sendFilter0;
-	private static int sendFilter1;
-	private static int sendFilter2;
-	private static int sendFilter3;
-
-	private static ProcThread proc_thread;
-	private static volatile boolean thread_alive;
-	@SuppressWarnings("unused")
-	private static volatile boolean thread_signal_death;
-	private static volatile List<Source> source_list;
-
-	public static class Source {
-		public int sourceID;
-		public float posX;
-		public float posY;
-		public float posZ;
-		public SoundCategory category;
-		public String name;
-		public int frequency;
-		public int size;
-		public int bufferID;
-
-		public Source(int sid, float px, float py, float pz, SoundCategory cat, String n) {
-			this.sourceID = sid;
-			this.posX = px;
-			this.posY = py;
-			this.posZ = pz;
-			this.category = cat;
-			this.name = n;
-			bufferID = AL10.alGetSourcei(sid, AL10.AL_BUFFER);
-			size = AL10.alGetBufferi(bufferID, AL10.AL_SIZE);
-			frequency = AL10.alGetBufferi(bufferID, AL10.AL_FREQUENCY);
-		}
-	}
-
-	public static class ProcThread extends Thread {
-		@Override
-		public synchronized void run() {
-			while (thread_alive) {
-				while (!Config.dynamicEnvironementEvalutaion.get()) {
-					try {
-						Thread.sleep(1000);
-					} catch (Exception e) {
-						logError(String.valueOf(e));
-					}
-				}
-				synchronized (source_list) {
-					//log("Updating env " + String.valueOf(source_list.size()));
-					ListIterator<Source> iter = source_list.listIterator();
-					while (iter.hasNext()) {
-						Source source = iter.next();
-						//log("Updating sound '" + source.name + "' SourceID:" + String.valueOf(source.sourceID));
-						//boolean pl = sndHandler.isSoundPlaying(source.sound);
-						//FloatBuffer pos = BufferUtils.createFloatBuffer(3);
-						//AL10.alGetSource(source.sourceID,AL10.AL_POSITION,pos);
-						//To try ^
-						int state = AL10.alGetSourcei(source.sourceID, AL10.AL_SOURCE_STATE);
-						//int byteoff = AL10.alGetSourcei(source.sourceID, AL11.AL_BYTE_OFFSET);
-						//boolean finished = source.size == byteoff;
-						if (state == AL10.AL_PLAYING) {
-							FloatBuffer pos = BufferUtils.createFloatBuffer(3);
-							AL10.alGetSourcef(source.sourceID, AL10.AL_POSITION, pos);
-							source.posX = pos.get(0);
-							source.posY = pos.get(1);
-							source.posZ = pos.get(2);
-							evaluateEnvironment(source.sourceID, source.posX, source.posY, source.posZ, source.category, source.name);
-						} else /*if (state == AL10.AL_STOPPED)*/ {
-							iter.remove();
-						}
-					}
-				}
-				try {
-					Thread.sleep(1000 / Config.dynamicEnvironementEvalutaionFrequency.get());
-				} catch (Exception e) {
-					logError(String.valueOf(e));
-				}
-			}
-			thread_signal_death = true;
-		}
-	}
-
 	public static void source_check_add(Source s) {
 		synchronized (source_list) {
 			ListIterator<Source> iter = source_list.listIterator();
@@ -185,39 +114,6 @@ public class SoundPhysics {
 				}
 			}
 			source_list.add(s);
-		}
-	}
-
-	@Mod.EventBusSubscriber
-	public static class DebugDisplayEventHandler {
-		@SubscribeEvent
-		public static void onDebugOverlay(RenderGameOverlayEvent.Text event) {
-			if (AsmHooks.mc != null && AsmHooks.mc.gameSettings.showDebugInfo && Config.dynamicEnvironementEvalutaion.get() && Config.debugInfoShow.get()) {
-				event.getLeft().add("");
-				event.getLeft().add("[SoundPhysics] " + String.valueOf(source_list.size()) + " Sources");
-				event.getLeft().add("[SoundPhysics] Source list :");
-				synchronized (source_list) {
-					ListIterator<Source> iter = source_list.listIterator();
-					while (iter.hasNext()) {
-						Source s = iter.next();
-						Vec3d tmp = new Vec3d(s.posX, s.posY, s.posZ);
-						event.getLeft().add(String.valueOf(s.sourceID) + "-" + s.category.toString() + "-" + s.name + "-" + tmp.toString());
-						/*int buffq = AL10.alGetSourcei(s.sourceID, AL10.AL_BUFFERS_QUEUED);
-						int buffp = AL10.alGetSourcei(s.sourceID, AL10.AL_BUFFERS_PROCESSED);
-						int sampoff = AL10.alGetSourcei(s.sourceID, AL11.AL_SAMPLE_OFFSET);
-						int byteoff = AL10.alGetSourcei(s.sourceID, AL11.AL_BYTE_OFFSET);
-						String k = "";
-						if (sampoff!=0) {
-							//k = String.valueOf(sampoff)+"/"+String.valueOf((byteoff/sampoff)*size)+" ";
-							k = String.valueOf((float)sampoff/(float)s.frequency)+"/"+String.valueOf((float)((byteoff/sampoff)*s.size)/(float)s.frequency)+" ";
-						} else {
-							k = "0/? ";
-						}
-						event.getLeft().add(k+String.valueOf(buffp)+"/"+String.valueOf(buffq)+" "+String.valueOf(s.bufferID));
-						event.getLeft().add("----");*/
-					}
-				}
-			}
 		}
 	}
 
@@ -829,6 +725,109 @@ public class SoundPhysics {
 
 		logError(errorMessage + " OpenAL error " + errorName);
 		return true;
+	}
+
+	public static class Source {
+		public int sourceID;
+		public float posX;
+		public float posY;
+		public float posZ;
+		public SoundCategory category;
+		public String name;
+		public int frequency;
+		public int size;
+		public int bufferID;
+
+		public Source(int sid, float px, float py, float pz, SoundCategory cat, String n) {
+			this.sourceID = sid;
+			this.posX = px;
+			this.posY = py;
+			this.posZ = pz;
+			this.category = cat;
+			this.name = n;
+			bufferID = AL10.alGetSourcei(sid, AL10.AL_BUFFER);
+			size = AL10.alGetBufferi(bufferID, AL10.AL_SIZE);
+			frequency = AL10.alGetBufferi(bufferID, AL10.AL_FREQUENCY);
+		}
+	}
+
+	public static class ProcThread extends Thread {
+		@Override
+		public synchronized void run() {
+			while (thread_alive) {
+				while (!Config.dynamicEnvironementEvalutaion.get()) {
+					try {
+						Thread.sleep(1000);
+					} catch (Exception e) {
+						logError(String.valueOf(e));
+					}
+				}
+				synchronized (source_list) {
+					//log("Updating env " + String.valueOf(source_list.size()));
+					ListIterator<Source> iter = source_list.listIterator();
+					while (iter.hasNext()) {
+						Source source = iter.next();
+						//log("Updating sound '" + source.name + "' SourceID:" + String.valueOf(source.sourceID));
+						//boolean pl = sndHandler.isSoundPlaying(source.sound);
+						//FloatBuffer pos = BufferUtils.createFloatBuffer(3);
+						//AL10.alGetSource(source.sourceID,AL10.AL_POSITION,pos);
+						//To try ^
+						int state = AL10.alGetSourcei(source.sourceID, AL10.AL_SOURCE_STATE);
+						//int byteoff = AL10.alGetSourcei(source.sourceID, AL11.AL_BYTE_OFFSET);
+						//boolean finished = source.size == byteoff;
+						if (state == AL10.AL_PLAYING) {
+							FloatBuffer pos = BufferUtils.createFloatBuffer(3);
+							AL10.alGetSourcef(source.sourceID, AL10.AL_POSITION, pos);
+							source.posX = pos.get(0);
+							source.posY = pos.get(1);
+							source.posZ = pos.get(2);
+							evaluateEnvironment(source.sourceID, source.posX, source.posY, source.posZ, source.category, source.name);
+						} else /*if (state == AL10.AL_STOPPED)*/ {
+							iter.remove();
+						}
+					}
+				}
+				try {
+					Thread.sleep(1000 / Config.dynamicEnvironementEvalutaionFrequency.get());
+				} catch (Exception e) {
+					logError(String.valueOf(e));
+				}
+			}
+			thread_signal_death = true;
+		}
+	}
+
+	@Mod.EventBusSubscriber
+	public static class DebugDisplayEventHandler {
+		@SubscribeEvent
+		public static void onDebugOverlay(RenderGameOverlayEvent.Text event) {
+			if (AsmHooks.mc != null && AsmHooks.mc.gameSettings.showDebugInfo && Config.dynamicEnvironementEvalutaion.get() && Config.debugInfoShow.get()) {
+				event.getLeft().add("");
+				event.getLeft().add("[SoundPhysics] " + String.valueOf(source_list.size()) + " Sources");
+				event.getLeft().add("[SoundPhysics] Source list :");
+				synchronized (source_list) {
+					ListIterator<Source> iter = source_list.listIterator();
+					while (iter.hasNext()) {
+						Source s = iter.next();
+						Vec3d tmp = new Vec3d(s.posX, s.posY, s.posZ);
+						event.getLeft().add(String.valueOf(s.sourceID) + "-" + s.category.toString() + "-" + s.name + "-" + tmp.toString());
+						/*int buffq = AL10.alGetSourcei(s.sourceID, AL10.AL_BUFFERS_QUEUED);
+						int buffp = AL10.alGetSourcei(s.sourceID, AL10.AL_BUFFERS_PROCESSED);
+						int sampoff = AL10.alGetSourcei(s.sourceID, AL11.AL_SAMPLE_OFFSET);
+						int byteoff = AL10.alGetSourcei(s.sourceID, AL11.AL_BYTE_OFFSET);
+						String k = "";
+						if (sampoff!=0) {
+							//k = String.valueOf(sampoff)+"/"+String.valueOf((byteoff/sampoff)*size)+" ";
+							k = String.valueOf((float)sampoff/(float)s.frequency)+"/"+String.valueOf((float)((byteoff/sampoff)*s.size)/(float)s.frequency)+" ";
+						} else {
+							k = "0/? ";
+						}
+						event.getLeft().add(k+String.valueOf(buffp)+"/"+String.valueOf(buffq)+" "+String.valueOf(s.bufferID));
+						event.getLeft().add("----");*/
+					}
+				}
+			}
+		}
 	}
 
 }

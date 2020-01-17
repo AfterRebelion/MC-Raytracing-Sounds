@@ -25,20 +25,38 @@ public class CoreModInjector { // implements IClassTransformer {
 
 	public static final Logger logger = LogManager.getLogger(SoundPhysics.modid + "injector");
 
-/*
-	public static boolean shouldPatchDS() {
-		if (Loader.isModLoaded("dsurround")) {
-			Map<String, ModContainer> mods = Loader.instance().getIndexedModList();
-			String version[] = mods.get("dsurround").getVersion().split("\\.");
-			if (version.length < 2) {
-				logError("What the hell, DS's version is not properly formatted ?");
-			} else if (version[1].equals("5")) {
-				return true;
+	/*
+		public static boolean shouldPatchDS() {
+			if (Loader.isModLoaded("dsurround")) {
+				Map<String, ModContainer> mods = Loader.instance().getIndexedModList();
+				String version[] = mods.get("dsurround").getVersion().split("\\.");
+				if (version.length < 2) {
+					logError("What the hell, DS's version is not properly formatted ?");
+				} else if (version[1].equals("5")) {
+					return true;
+				}
 			}
+			return false;
 		}
-		return false;
+	*/
+	private static Printer printer = new Textifier();
+	private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);
+
+	public static String insnToString(AbstractInsnNode insn) {
+		insn.accept(mp);
+		StringWriter sw = new StringWriter();
+		printer.print(new PrintWriter(sw));
+		printer.getText().clear();
+		return sw.toString();
 	}
-*/
+
+	public static void log(final String message) {
+		if (Config.injectorLogging.get()) logger.info(message);
+	}
+
+	public static void logError(final String errorMessage) {
+		logger.error(errorMessage);
+	}
 
 	public byte[] transform(final String obfuscated, final String deobfuscated, byte[] bytes) {
 		if (obfuscated.equals("chm$a")) {
@@ -437,17 +455,6 @@ public class CoreModInjector { // implements IClassTransformer {
 		return bytes;
 	}
 
-	private static Printer printer = new Textifier();
-	private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);
-
-	public static String insnToString(AbstractInsnNode insn) {
-		insn.accept(mp);
-		StringWriter sw = new StringWriter();
-		printer.print(new PrintWriter(sw));
-		printer.getText().clear();
-		return sw.toString();
-	}
-
 	private byte[] patchMethodInClass(String className, final byte[] bytes, final String targetMethod,
 									  final String targetMethodSignature, final int targetNodeOpcode, final int targetNodeType,
 									  final String targetInvocationMethodName, final String targetInvocationMethodSignature, final int targetVarNodeIndex,
@@ -561,13 +568,5 @@ public class CoreModInjector { // implements IClassTransformer {
 		final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		classNode.accept(writer);
 		return writer.toByteArray();
-	}
-
-	public static void log(final String message) {
-		if (Config.injectorLogging.get()) logger.info(message);
-	}
-
-	public static void logError(final String errorMessage) {
-		logger.error(errorMessage);
 	}
 }
