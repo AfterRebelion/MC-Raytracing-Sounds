@@ -1,5 +1,7 @@
 package com.sonicether.soundphysics;
 
+import com.sonicether.soundphysics.coremod.ASMHooks;
+
 public class ReverbParams {
 
 	public float decayTime; // min: 0.1f max: 10.0f
@@ -15,12 +17,12 @@ public class ReverbParams {
 	public float airAbsorptionGainHF; // min: 0.892f max: 1.0f
 	public float roomRolloffFactor; // min: 0.0f max: 10.0f
 
-	public static ReverbParams getReverb0() {
+	public static ReverbParams getReverb1() {
 		final ReverbParams r = new ReverbParams();
 		r.decayTime = 0.15f;
 		r.density = 0.0f;
 		r.diffusion = 1.0f;
-		r.gain = 0.2f * AsmHooks.globalReverbMultiplier * 0.85f;
+		r.gain = 0.2f * ASMHooks.globalReverbMultiplier * 0.85f;
 		r.gainHF = 0.99f;
 		r.decayHFRatio = (float) (0.6f * Config.globalReverbBrightness.get());
 		r.reflectionsGain = 2.5f;
@@ -33,12 +35,12 @@ public class ReverbParams {
 		return r;
 	}
 
-	public static ReverbParams getReverb1() {
+	public static ReverbParams getReverb2() {
 		final ReverbParams r = new ReverbParams();
 		r.decayTime = 0.55f;
 		r.density = 0.0f;
 		r.diffusion = 1.0f;
-		r.gain = 0.3f * AsmHooks.globalReverbMultiplier * 0.85f;
+		r.gain = 0.3f * ASMHooks.globalReverbMultiplier * 0.85f;
 		r.gainHF = 0.99f;
 		r.decayHFRatio = (float) (0.7f * Config.globalReverbBrightness.get());
 		r.reflectionsGain = 0.2f;
@@ -51,12 +53,12 @@ public class ReverbParams {
 		return r;
 	}
 
-	public static ReverbParams getReverb2() {
+	public static ReverbParams getReverb3() {
 		final ReverbParams r = new ReverbParams();
 		r.decayTime = 1.68f;
 		r.density = 0.1f;
 		r.diffusion = 1.0f;
-		r.gain = 0.5f * AsmHooks.globalReverbMultiplier * 0.85f;
+		r.gain = 0.5f * ASMHooks.globalReverbMultiplier * 0.85f;
 		r.gainHF = 0.99f;
 		r.decayHFRatio = (float) (0.7f * Config.globalReverbBrightness.get());
 		r.reflectionsGain = 0.0f;
@@ -69,12 +71,12 @@ public class ReverbParams {
 		return r;
 	}
 
-	public static ReverbParams getReverb3() {
+	public static ReverbParams getReverb4() {
 		final ReverbParams r = new ReverbParams();
 		r.decayTime = 4.142f;
 		r.density = 0.5f;
 		r.diffusion = 1.0f;
-		r.gain = 0.4f * AsmHooks.globalReverbMultiplier * 0.85f;
+		r.gain = 0.4f * ASMHooks.globalReverbMultiplier * 0.85f;
 		r.gainHF = 0.89f;
 		r.decayHFRatio = (float) (0.7f * Config.globalReverbBrightness.get());
 		r.reflectionsGain = 0.0f;

@@ -1,5 +1,7 @@
-package com.sonicether.soundphysics;
+package com.sonicether.soundphysics.coremod;
 
+import com.sonicether.soundphysics.Config;
+import com.sonicether.soundphysics.SoundPhysics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.AudioStreamBuffer;
 import net.minecraft.client.audio.ISound;
@@ -11,22 +13,25 @@ import javax.sound.sampled.AudioFormat;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import static com.sonicether.soundphysics.CoreModInjector.logError;
-import static com.sonicether.soundphysics.SoundPhysics.*;
+import static com.sonicether.soundphysics.coremod.ASMTools.clickPattern;
+import static com.sonicether.soundphysics.coremod.ASMTools.evaluateEnvironment;
+import static com.sonicether.soundphysics.coremod.ASMTools.mc;
+import static com.sonicether.soundphysics.coremod.ASMTools.noteBlockPattern;
+import static com.sonicether.soundphysics.coremod.ASMTools.rainPattern;
+import static com.sonicether.soundphysics.coremod.ASMTools.stepPattern;
+import static com.sonicether.soundphysics.coremod.ASMTools.uiPattern;
 
-public class AsmHooks {
-	protected static Minecraft mc;
+public class ASMHooks {
+	// THESE VARIABLES ARE CONSTANTLY ACCESSED AND USED BY ASM INJECTED CODE! DO
+	// NOT REMOVE!
+	public static float globalVolumeMultiplier = 4.0f;
+	public static float globalReverbMultiplier = (float) (0.7f * Config.globalReverbGain.get());
+	public static ISound.AttenuationType attenuationModel = ISound.AttenuationType.LINEAR; // Mojang only ported LINEAR attenuation for their sound system... See ISound.AttenuationType
+	public static Double globalRolloffFactor = Config.rolloffFactor.get();
+	public static double soundDistanceAllowance = Config.soundDistanceAllowance.get();
 
 	private static SoundCategory lastSoundCategory;
 	private static String lastSoundName;
-
-	// THESE VARIABLES ARE CONSTANTLY ACCESSED AND USED BY ASM INJECTED CODE! DO
-	// NOT REMOVE!
-	public static ISound.AttenuationType attenuationModel = ISound.AttenuationType.LINEAR; // Mojang only ported LINEAR attenuation for their sound system... See ISound.AttenuationType
-	public static Double globalRolloffFactor = Config.rolloffFactor.get();
-	public static float globalVolumeMultiplier = 4.0f;
-	public static float globalReverbMultiplier = (float) (0.7f * Config.globalReverbGain.get());
-	public static double soundDistanceAllowance = Config.soundDistanceAllowance.get();
 
 	/**
 	 * CALLED BY ASM INJECTED CODE!
@@ -38,11 +43,11 @@ public class AsmHooks {
 				sndSystem.changeDopplerFactor(1.0f);
 				AL11.alSpeedOfSound(343.3f); // Should already be 343.3 but just in case
 			}*/
-			setupEFX();
-			setupThread();
+			ASMTools.setupEFX();
+			ProcThread.setupThread();
 		} catch (Throwable e) {
-			logError("Failed to init EFX or thread");
-			logError(e.toString());
+			SoundPhysics.logError("Failed to init EFX or thread");
+			SoundPhysics.logError(e.toString());
 		}
 	}
 
@@ -96,8 +101,8 @@ public class AsmHooks {
 				|| soundCat == SoundCategory.MUSIC) || (Config.skipRainOcclusionTracing.get() && rainPattern.matcher(soundName).matches()))
 			return;
 		if (clickPattern.matcher(soundName).matches() || uiPattern.matcher(soundName).matches()) return;
-		SoundPhysics.Source tmp = new SoundPhysics.Source(sourceID, posX, posY, posZ, soundCat, soundName);
-		source_check_add(tmp);
+		Source tmp = new Source(sourceID, posX, posY, posZ, soundCat, soundName);
+		Source.source_check_add(tmp);
 	}
 
 	/**
@@ -108,7 +113,7 @@ public class AsmHooks {
 		if (mc.player == null || mc.world == null || lastSoundCategory == SoundCategory.RECORDS
 				| lastSoundCategory == SoundCategory.MUSIC || uiPattern.matcher(filename).matches() || clickPattern.matcher(filename).matches()) {
 			if (Config.autoSteroDownmixLogging.get())
-				log("Not converting sound '" + filename + "'(" + buff.field_216476_b.toString() + ")");
+				SoundPhysics.log("Not converting sound '" + filename + "'(" + buff.field_216476_b.toString() + ")");
 			return buff;
 		}
 		AudioFormat orignalformat = buff.field_216476_b;
@@ -117,7 +122,7 @@ public class AsmHooks {
 		AudioFormat monoformat = new AudioFormat(orignalformat.getEncoding(), orignalformat.getSampleRate(), bits,
 				1, orignalformat.getFrameSize(), orignalformat.getFrameRate(), bigendian);
 		if (Config.autoSteroDownmixLogging.get())
-			log("Converting sound '" + filename + "'(" + orignalformat.toString() + ") to mono (" + monoformat.toString() + ")");
+			SoundPhysics.log("Converting sound '" + filename + "'(" + orignalformat.toString() + ") to mono (" + monoformat.toString() + ")");
 
 		ByteBuffer bb = buff.field_216475_a;
 		bb.order(bigendian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);

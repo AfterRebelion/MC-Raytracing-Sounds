@@ -11,16 +11,15 @@ function initializeCoreMod() {
 				var ASMAPI = Java.type('net.minecraftforge.coremod.api.ASMAPI');
 				var Opcodes = Java.type('org.objectweb.asm.Opcodes');
 				var VarInsnNode = Java.type('org.objectweb.asm.tree.VarInsnNode');
-				var InsnList = Java.type('org.objectweb.asm.tree.InsnList');
 
-				var newInstructions = new InsnList();
-				newInstructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
-				newInstructions.add(ASMAPI.buildMethodCall(
-					"com/sonicether/soundphysics/AsmHooks",
-					"init",
-					"()V",
-					ASMAPI.MethodType.STATIC
-				));
+				var newInstructions = ASMAPI.listOf(
+					new VarInsnNode(Opcodes.ALOAD, 0),
+					ASMAPI.buildMethodCall(
+						"com/sonicether/soundphysics/coremod/ASMHooks",
+						"init",
+						"()V",
+						ASMAPI.MethodType.STATIC)
+				);
 
 				var isTransformed = ASMAPI.insertInsnList(
 					methodNode,
