@@ -7,6 +7,10 @@ import java.util.ListIterator;
 
 import static com.sonicether.soundphysics.coremod.ProcThread.source_list;
 
+/**
+ *  Hybrid of {@link net.minecraft.client.audio.SimpleSound} and {@link net.minecraft.client.audio.SoundSource}
+ *
+ */
 public class Source {
 	public int sourceID;
 	public float posX;

@@ -130,7 +130,7 @@ public class ASMTools {
 	}
 
 	// Copy of isRainingAt
-	private static boolean isSnowingAt(BlockPos position, boolean check_rain) {
+	public static boolean isSnowingAt(BlockPos position, boolean check_rain) {
 		if (check_rain && !mc.world.isRaining()) {
 			return false;
 		} else if (!mc.world.isSkyVisible(position)) {
@@ -147,7 +147,7 @@ public class ASMTools {
 	}
 
 	@SuppressWarnings("deprecation")
-	private static Double getBlockReflectivity(final BlockPos blockPos) {
+	public static Double getBlockReflectivity(final BlockPos blockPos) {
 		final BlockState blockState = mc.world.getBlockState(blockPos);
 		final Block block = blockState.getBlock();
 		final SoundType soundType = block.getSoundType(blockState);
@@ -187,7 +187,7 @@ public class ASMTools {
 		return new Vec3d(sideHit.getDirectionVec());
 	}
 
-	private static Vec3d reflect(final Vec3d dir, final Vec3d normal) {
+	public static Vec3d reflect(final Vec3d dir, final Vec3d normal) {
 		final double dot2 = dir.dotProduct(normal) * 2;
 
 		final double x = dir.x - dot2 * normal.x;
@@ -197,7 +197,7 @@ public class ASMTools {
 		return new Vec3d(x, y, z);
 	}
 
-	private static Vec3d offsetSoundByName(final double soundX, final double soundY, final double soundZ,
+	public static Vec3d offsetSoundByName(final double soundX, final double soundY, final double soundZ,
 										   final Vec3d playerPos, final String name, final SoundCategory category) {
 		double offsetX = 0.0;
 		double offsetY = 0.0;

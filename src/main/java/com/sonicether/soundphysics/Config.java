@@ -3,9 +3,7 @@ package com.sonicether.soundphysics;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 
 import java.nio.file.Path;
 
@@ -14,6 +12,7 @@ public class Config {
 
 	// general
 	public static ForgeConfigSpec.DoubleValue rolloffFactor;
+	public static ForgeConfigSpec.DoubleValue globalVolumeMultiplier;
 	public static ForgeConfigSpec.DoubleValue globalReverbGain;
 	public static ForgeConfigSpec.DoubleValue globalReverbBrightness;
 	public static ForgeConfigSpec.DoubleValue soundDistanceAllowance;
@@ -104,15 +103,12 @@ public class Config {
 		spec.setConfig(configData);
 	}
 
-	@SubscribeEvent
-	public void onConfigChanged(final ModConfig.ConfigReloading eventArgs) {
-
-	}
-
 	private static void setupGeneral() {
 		// General
 		rolloffFactor = COMMON_BUILDER.comment("Affects how quiet a sound gets based on distance. Lower values mean distant sounds are louder. 1.0 is the physically correct value.")
 				.defineInRange("Attenuation Factor", 1.0D, 0.2D, 1.0D);
+		globalVolumeMultiplier = COMMON_BUILDER.comment("The global volume multiplier made to sounds")
+				.defineInRange("Global Volume Multiplier", 4.0D, 0.1D, 10.0D);
 		globalReverbGain = COMMON_BUILDER.comment("The global volume of simulated reverberations.")
 				.defineInRange("Global Reverb Gain", 1.0D, 0.1D, 2.0D);
 		globalReverbBrightness = COMMON_BUILDER.comment("The brightness of reverberation. Higher values result in more high frequencies in reverberation. Lower values give a more muffled sound to the reverb.")

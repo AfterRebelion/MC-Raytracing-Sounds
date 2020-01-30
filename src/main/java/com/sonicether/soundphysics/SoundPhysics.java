@@ -1,5 +1,6 @@
 package com.sonicether.soundphysics;
 
+import com.sonicether.soundphysics.utils.SoundEventHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -47,6 +48,7 @@ public class SoundPhysics {
 	public void doClientStuff(final FMLClientSetupEvent event) {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
 		Config.loadConfig(Config.CLIENT_CONFIG, FMLPaths.CONFIGDIR.get().resolve("soundphysics-client.toml"));
+		MinecraftForge.EVENT_BUS.register(new SoundEventHandler());
 	}
 
 	public void doServerStuff(final FMLDedicatedServerSetupEvent event) {
