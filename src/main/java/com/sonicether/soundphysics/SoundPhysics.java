@@ -1,6 +1,6 @@
 package com.sonicether.soundphysics;
 
-import com.sonicether.soundphysics.utils.SoundEventHandler;
+import com.sonicether.soundphysics.soundsystem.SoundEventHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
