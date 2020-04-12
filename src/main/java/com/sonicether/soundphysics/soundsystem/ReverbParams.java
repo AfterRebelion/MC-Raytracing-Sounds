@@ -4,7 +4,7 @@ import com.sonicether.soundphysics.Config;
 
 public class ReverbParams {
 
-	private static float globalReverbMultiplier = (float) (0.7f * Config.globalReverbGain.get());
+	private static final float GLOBAL_REVERB_MUL = 0.7f * Config.globalReverbGain.get().floatValue();
 	public float decayTime; // min: 0.1f max: 10.0f
 	public float density; // min: 0.0f max: 1.0f
 	public float diffusion; // min: 0.0f max: 1.0f
@@ -23,15 +23,15 @@ public class ReverbParams {
 		r.decayTime = 0.15f;
 		r.density = 0.0f;
 		r.diffusion = 1.0f;
-		r.gain = 0.2f * globalReverbMultiplier * 0.85f;
+		r.gain = 0.2f * GLOBAL_REVERB_MUL * 0.85f;
 		r.gainHF = 0.99f;
-		r.decayHFRatio = (float) (0.6f * Config.globalReverbBrightness.get());
+		r.decayHFRatio = 0.6f * Config.globalReverbBrightness.get().floatValue();
 		r.reflectionsGain = 2.5f;
 		r.reflectionsDelay = 0.001f;
 		r.lateReverbGain = 1.26f;
 		r.lateReverbDelay = 0.011f;
 		r.airAbsorptionGainHF = 0.994f;
-		r.roomRolloffFactor = (float) (0.16f * Config.rolloffFactor.get());
+		r.roomRolloffFactor = 0.16f * Config.rolloffFactor.get().floatValue();
 
 		return r;
 	}
@@ -41,15 +41,15 @@ public class ReverbParams {
 		r.decayTime = 0.55f;
 		r.density = 0.0f;
 		r.diffusion = 1.0f;
-		r.gain = 0.3f * globalReverbMultiplier * 0.85f;
+		r.gain = 0.3f * GLOBAL_REVERB_MUL * 0.85f;
 		r.gainHF = 0.99f;
-		r.decayHFRatio = (float) (0.7f * Config.globalReverbBrightness.get());
+		r.decayHFRatio = 0.7f * Config.globalReverbBrightness.get().floatValue();
 		r.reflectionsGain = 0.2f;
 		r.reflectionsDelay = 0.015f;
 		r.lateReverbGain = 1.26f;
 		r.lateReverbDelay = 0.011f;
 		r.airAbsorptionGainHF = 0.994f;
-		r.roomRolloffFactor = (float) (0.15f * Config.rolloffFactor.get());
+		r.roomRolloffFactor = 0.15f * Config.rolloffFactor.get().floatValue();
 
 		return r;
 	}
@@ -59,15 +59,15 @@ public class ReverbParams {
 		r.decayTime = 1.68f;
 		r.density = 0.1f;
 		r.diffusion = 1.0f;
-		r.gain = 0.5f * globalReverbMultiplier * 0.85f;
+		r.gain = 0.5f * GLOBAL_REVERB_MUL * 0.85f;
 		r.gainHF = 0.99f;
-		r.decayHFRatio = (float) (0.7f * Config.globalReverbBrightness.get());
+		r.decayHFRatio = 0.7f * Config.globalReverbBrightness.get().floatValue();
 		r.reflectionsGain = 0.0f;
 		r.reflectionsDelay = 0.021f;
 		r.lateReverbGain = 1.26f;
 		r.lateReverbDelay = 0.021f;
 		r.airAbsorptionGainHF = 0.994f;
-		r.roomRolloffFactor = (float) (0.13f * Config.rolloffFactor.get());
+		r.roomRolloffFactor = 0.13f * Config.rolloffFactor.get().floatValue();
 
 		return r;
 	}
@@ -77,15 +77,15 @@ public class ReverbParams {
 		r.decayTime = 4.142f;
 		r.density = 0.5f;
 		r.diffusion = 1.0f;
-		r.gain = 0.4f * globalReverbMultiplier * 0.85f;
+		r.gain = 0.4f * GLOBAL_REVERB_MUL * 0.85f;
 		r.gainHF = 0.89f;
-		r.decayHFRatio = (float) (0.7f * Config.globalReverbBrightness.get());
+		r.decayHFRatio = 0.7f * Config.globalReverbBrightness.get().floatValue();
 		r.reflectionsGain = 0.0f;
 		r.reflectionsDelay = 0.025f;
 		r.lateReverbGain = 1.26f;
 		r.lateReverbDelay = 0.021f;
 		r.airAbsorptionGainHF = 0.994f;
-		r.roomRolloffFactor = (float) (0.11f * Config.rolloffFactor.get());
+		r.roomRolloffFactor = 0.11f * Config.rolloffFactor.get().floatValue();
 
 		return r;
 	}

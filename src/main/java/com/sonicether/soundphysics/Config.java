@@ -21,8 +21,8 @@ public class Config {
 	public static ForgeConfigSpec.DoubleValue airAbsorption;
 	public static ForgeConfigSpec.DoubleValue snowAirAbsorptionFactor;
 	public static ForgeConfigSpec.DoubleValue underwaterFilter;
-	public static ForgeConfigSpec.BooleanValue noteBlockEnable;
-	public static ForgeConfigSpec.DoubleValue maxDistance;
+	public static ForgeConfigSpec.BooleanValue noteBlockDisable;
+	public static ForgeConfigSpec.DoubleValue maxRayDistance;
 	//public static ForgeConfigSpec.BooleanValue dopplerEnabled;
 
 	// performance
@@ -54,36 +54,36 @@ public class Config {
 	public static ForgeConfigSpec.BooleanValue debugInfoShow;
 	public static ForgeConfigSpec.BooleanValue injectorLogging;
 
-	private static final String categoryGeneral = "General";
-	private static final String categoryPerformance = "Performance";
-	private static final String categoryMaterialProperties = "Materials";
-	private static final String categoryCompatibility = "Compatibility";
-	private static final String categoryMisc = "Misc";
+	private static final String CATEGORY_GENERAL = "General";
+	private static final String CATEGORY_PERFORMANCE = "Performance";
+	private static final String CATEGORY_MATERIAL = "Materials";
+	private static final String CATEGORY_COMPAT = "Compatibility";
+	private static final String CATEGORY_MISC = "Misc";
 
 	private static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
 	private static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
 
-	public static ForgeConfigSpec COMMON_CONFIG;
-	public static ForgeConfigSpec CLIENT_CONFIG;
+	public static final ForgeConfigSpec COMMON_CONFIG;
+	public static final ForgeConfigSpec CLIENT_CONFIG;
 
 	static {
-		COMMON_BUILDER.comment("General settings").push(categoryGeneral);
+		COMMON_BUILDER.comment("General settings").push(CATEGORY_GENERAL);
 		setupGeneral();
 		COMMON_BUILDER.pop();
 
-		COMMON_BUILDER.comment("Performance").push(categoryPerformance);
+		COMMON_BUILDER.comment("Performance settings").push(CATEGORY_PERFORMANCE);
 		setupPerformance();
 		COMMON_BUILDER.pop();
 
-		COMMON_BUILDER.comment("Material properties").push(categoryMaterialProperties);
+		COMMON_BUILDER.comment("Material properties").push(CATEGORY_MATERIAL);
 		setupMaterial();
 		COMMON_BUILDER.pop();
 
-		COMMON_BUILDER.comment("Compatibility").push(categoryCompatibility);
+		COMMON_BUILDER.comment("Compatibility settings").push(CATEGORY_COMPAT);
 		setupCompatibility();
 		COMMON_BUILDER.pop();
 
-		COMMON_BUILDER.comment("Misc").push(categoryMisc);
+		COMMON_BUILDER.comment("Misc settings").push(CATEGORY_MISC);
 		setupMisc();
 		COMMON_BUILDER.pop();
 
@@ -106,29 +106,29 @@ public class Config {
 	private static void setupGeneral() {
 		// General
 		rolloffFactor = COMMON_BUILDER.comment("Affects how quiet a sound gets based on distance. Lower values mean distant sounds are louder. 1.0 is the physically correct value.")
-				.defineInRange("Attenuation Factor", 1.0D, 0.2D, 1.0D);
+				.defineInRange("AttenuationFactor", 1.0D, 0.2D, 1.0D);
 		globalVolumeMultiplier = COMMON_BUILDER.comment("The global volume multiplier made to sounds")
-				.defineInRange("Global Volume Multiplier", 4.0D, 0.1D, 10.0D);
+				.defineInRange("GlobalVolumeMultiplier", 4.0D, 0.1D, 10.0D);
 		globalReverbGain = COMMON_BUILDER.comment("The global volume of simulated reverberations.")
-				.defineInRange("Global Reverb Gain", 1.0D, 0.1D, 2.0D);
+				.defineInRange("GlobalReverbGain", 1.0D, 0.1D, 2.0D);
 		globalReverbBrightness = COMMON_BUILDER.comment("The brightness of reverberation. Higher values result in more high frequencies in reverberation. Lower values give a more muffled sound to the reverb.")
-				.defineInRange("Global Reverb Brightness", 1.0D, 0.1D, 2.0D);
+				.defineInRange("GlobalReverbBrightness", 1.0D, 0.1D, 2.0D);
 		globalBlockAbsorption = COMMON_BUILDER.comment("The global amount of sound that will be absorbed when traveling through blocks.")
-				.defineInRange("Global Block Absorption", 1.0D, 0.1D, 4.0D);
+				.defineInRange("GlobalBlockAbsorption", 1.0D, 0.1D, 4.0D);
 		globalBlockReflectance = COMMON_BUILDER.comment("The global amount of sound reflectance energy of all blocks. Lower values result in more conservative reverb simulation with shorter reverb tails. Higher values result in more generous reverb simulation with higher reverb tails.")
-				.defineInRange("Global Block Reflectance", 1.0D, 0.1D, 4.0D);
+				.defineInRange("GlobalBlockReflectance", 1.0D, 0.1D, 4.0D);
 		soundDistanceAllowance = COMMON_BUILDER.comment("Minecraft won't allow sounds to play past a certain distance. This parameter is a multiplier for how far away a sound source is allowed to be in order for it to actually play. Values too high can cause polyphony issues.")
-				.defineInRange("Sound Distance Allowance", 4.0D, 1.0D, 6.0D);
+				.defineInRange("SoundDistanceAllowance", 4.0D, 1.0D, 6.0D);
 		airAbsorption = COMMON_BUILDER.comment("A value controlling the amount that air absorbs high frequencies with distance. A value of 1.0 is physically correct for air with normal humidity and temperature. Higher values mean air will absorb more high frequencies with distance. 0 disables this effect.")
-				.defineInRange("Air Absorption", 1.0D, 0.0D, 5.0D);
+				.defineInRange("AirAbsorption", 1.0D, 0.0D, 5.0D);
 		snowAirAbsorptionFactor = COMMON_BUILDER.comment("The maximum air absorption factor when it's snowing. The real absorption factor will depend on the snow's intensity. Set to 1 or lower to disable")
-				.defineInRange("Max Snow Air Absorption Factor", 5.0D, 0.0D, 10.0D);
+				.defineInRange("AirSnowMaxAbsorptionFactor", 5.0D, 0.0D, 10.0D);
 		underwaterFilter = COMMON_BUILDER.comment("How much sound is filtered when the player is underwater. 0.0 means no filter. 1.0 means fully filtered.")
-				.defineInRange("Underwater Filter", 0.8D, 0.0D, 1.0D);
-		noteBlockEnable = COMMON_BUILDER.comment("If true, note blocks will be processed.")
-				.define("Affect Note Blocks", true);
-		maxDistance = COMMON_BUILDER.comment("How far the rays should be traced.")
-				.defineInRange("Max ray distance", 256.0D, 1.0D, 8192.0D);
+				.defineInRange("UnderwaterFilter", 0.8D, 0.0D, 1.0D);
+		noteBlockDisable = COMMON_BUILDER.comment("If true, note blocks will not be processed.")
+				.define("NoteBlocksDisable", false);
+		maxRayDistance = COMMON_BUILDER.comment("How far the rays should be traced.")
+				.defineInRange("MaxRayDistance", 256.0D, 1.0D, 8192.0D);
 		/*dopplerEnabled = COMMON_BUILDER.comment("REQUIRES RESTART. If true, the doppler effect will be enabled.")
 				.define("Enable doppler effect", true);*/
 	}
@@ -136,60 +136,64 @@ public class Config {
 	private static void setupPerformance() {
 		// performance
 		skipRainOcclusionTracing = COMMON_BUILDER.comment("If true, rain sound sources won't trace for sound occlusion. This can help performance during rain.")
-				.define("Skip Rain Occlusion Tracing", true);
+				.define("SkipRainOcclusionTracing", true);
 		environmentEvaluationRays = COMMON_BUILDER.comment("The number of rays to trace to determine reverberation for each sound source. More rays provides more consistent tracing results but takes more time to calculate. Decrease this value if you experience lag spikes when sounds play.")
-				.defineInRange("Environment Evaluation Rays", 32, 8, 64);
+				.defineInRange("EnvironmentEvaluationRays", 32, 8, 64);
 		simplerSharedAirspaceSimulation = COMMON_BUILDER.comment("If true, enables a simpler technique for determining when the player and a sound source share airspace. Might sometimes miss recognizing shared airspace, but it's faster to calculate.")
-				.define("Simpler Shared Airspace Simulation", false);
+				.define("SimplerSharedAirspaceSimulation", false);
 		dynamicEnvironementEvalutaion = COMMON_BUILDER.comment("WARNING it's implemented really badly so i'd recommend not always using it.If true, the environment will keep getting evaluated for every sound that is currently playing. This may affect performance")
-				.define("Dynamic environment evaluation", false);
+				.define("EnvironmentEvaluationDynamic", false);
 		dynamicEnvironementEvalutaionFrequency = COMMON_BUILDER.comment("The frequency at witch to update environment of sounds if dynamic environment evaluation is enabled")
-				.defineInRange("Frequency of environment evaluation", 30, 1, 60);
+				.defineInRange("EnvironmentEvaluationFrequency", 30, 1, 60);
 	}
 
 	private static void setupMaterial() {
 		// material properties
 		stoneReflectivity = COMMON_BUILDER.comment("Sound reflectivity for stone blocks.")
-				.defineInRange("Stone Reflectivity", 0.95D, 0.0D, 1.0D);
+				.defineInRange("StoneReflectivity", 0.95D, 0.0D, 1.0D);
 		woodReflectivity = COMMON_BUILDER.comment("Sound reflectivity for wooden blocks.")
-				.defineInRange("Wood Reflectivity", 0.7D, 0.D, 1.0D);
+				.defineInRange("WoodReflectivity", 0.7D, 0.D, 1.0D);
 		groundReflectivity = COMMON_BUILDER.comment("Sound reflectivity for ground blocks (dirt, gravel, etc).")
-				.defineInRange("Ground Reflectivity", 0.3D, 0.0D, 1.0D);
+				.defineInRange("GroundReflectivity", 0.3D, 0.0D, 1.0D);
 		plantReflectivity = COMMON_BUILDER.comment("Sound reflectivity for foliage blocks (leaves, grass, etc.).")
-				.defineInRange("Foliage Reflectivity", 0.2D, 0.0D, 1.0D);
+				.defineInRange("FoliageReflectivity", 0.2D, 0.0D, 1.0D);
 		metalReflectivity = COMMON_BUILDER.comment("Sound reflectivity for metal blocks.")
-				.defineInRange("Metal Reflectivity", 0.97D, 0.0D, 1.0D);
+				.defineInRange("MetalReflectivity", 0.97D, 0.0D, 1.0D);
 		glassReflectivity = COMMON_BUILDER.comment("Sound reflectivity for glass blocks.")
-				.defineInRange("Glass Reflectivity", 0.5D, 0.0D, 1.0D);
+				.defineInRange("GlassReflectivity", 0.5D, 0.0D, 1.0D);
 		clothReflectivity = COMMON_BUILDER.comment("Sound reflectivity for cloth blocks (carpet, wool, etc).")
-				.defineInRange("Cloth Reflectivity", 0.25D, 0.0D, 1.0D);
+				.defineInRange("ClothReflectivity", 0.25D, 0.0D, 1.0D);
 		sandReflectivity = COMMON_BUILDER.comment("Sound reflectivity for sand blocks.")
-				.defineInRange("Sand Reflectivity", 0.2D, 0.0D, 1.0D);
+				.defineInRange("SandReflectivity", 0.2D, 0.0D, 1.0D);
 		snowReflectivity = COMMON_BUILDER.comment("Sound reflectivity for snow blocks.")
-				.defineInRange("Snow Reflectivity", 0.2D, 0.0D, 1.0D);
+				.defineInRange("SnowReflectivity", 0.2D, 0.0D, 1.0D);
 	}
 
 	private static void setupCompatibility() {
 		// compatibility
 		computronicsPatching = COMMON_BUILDER.comment("REQUIRES RESTART. If true, patches the Computronics sound sources so it works with Sound Physics.")
-				.define("Patch Computronics", true);
+				.define("PatchComputronics", false);
 		irPatching = COMMON_BUILDER.comment("REQUIRES RESTART. If true, patches the Immersive Railroading sound sources so it works with Sound Physics.")
-				.define("Patch Immersive Railroading", true);
+				.define("PatchImmersiveRailroading", false);
 		dsPatching = COMMON_BUILDER.comment("REQUIRES RESTART. If true, patches Dynamic Surroundings to fix some bugs with Sound Physics.")
-				.define("Patch Dynamic Surroundings", true);
+				.define("PatchDynamicSurroundings", false);
 		autoSteroDownmix = COMMON_BUILDER.comment("REQUIRES RESTART. If true, Automatically downmix stereo sounds that are loaded to mono")
-				.define("Auto stereo downmix", true);
+				.define("StereoDownmixAuto", false);
 	}
 
 	private static void setupMisc() {
 		// misc
 		autoSteroDownmixLogging = COMMON_BUILDER.comment("If true, Prints sound name and format of the sounds that get converted")
-				.define("Stereo downmix Logging", false);
+				.define("StereoDownmixLogging", false);
 		debugInfoShow = COMMON_BUILDER.comment("If true, Shows sources currently playing in the F3 debug info")
-				.define("Dynamic environment info in F3", false);
+				.define("DynamicEnvironmentInfo", false);
 		injectorLogging = COMMON_BUILDER.comment("If true, Logs debug info about the injector")
-				.define("Injector Logging", false);
+				.define("InjectorLogging", false);
 
+	}
+
+	private Config() {
+		throw new IllegalStateException("Utility class");
 	}
 
 }

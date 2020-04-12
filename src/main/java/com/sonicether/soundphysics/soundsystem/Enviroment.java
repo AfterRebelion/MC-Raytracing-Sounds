@@ -38,7 +38,7 @@ public class Enviroment {
 			}
 
 			float directCutoff = 1.0f;
-			final float absorptionCoeff = (float) (Config.globalBlockAbsorption.get() * 3.0f);
+			final float absorptionCoeff = Config.globalBlockAbsorption.get().floatValue() * 3.0f;
 
 			final Vec3d playerPos = new Vec3d(mc.player.getPosX(), mc.player.getPosY() + mc.player.getEyeHeight(), mc.player.getPosZ());
 			final Vec3d soundPos = Utils.offsetSound(SoundSourceEvent, playerPos);
@@ -55,7 +55,7 @@ public class Enviroment {
 				final int snowingSound = Utils.isSnowingAt(soundPosBlock, false) ? 1 : 0;
 				final int snowingMiddle = Utils.isSnowingAt(middlePosBlock, false) ? 1 : 0;
 				final float snowFactor = snowingPlayer * 0.25f + snowingMiddle * 0.5f + snowingSound * 0.25f;
-				airAbsorptionFactor = (float) Math.max(Config.snowAirAbsorptionFactor.get() * mc.world.getRainStrength(1.0f) * snowFactor, airAbsorptionFactor);
+				airAbsorptionFactor = Math.max(Config.snowAirAbsorptionFactor.get().floatValue() * mc.world.getRainStrength(1.0f) * snowFactor, airAbsorptionFactor);
 			}
 
 			Vec3d rayOrigin = soundPos;
@@ -74,7 +74,6 @@ public class Enviroment {
 				float blockOcclusion = 1.0f;
 
 				if (!blockHit.isOpaqueCube(mc.world, rayHit.getPos())) {
-					// log("not a solid block!");
 					blockOcclusion *= 0.15f;
 				}
 
@@ -86,7 +85,7 @@ public class Enviroment {
 
 			directCutoff = (float) Math.exp(-occlusionAccumulation * absorptionCoeff);
 
-			float directGain = (float) Math.pow(directCutoff, 0.1);
+			float directGain = (float) Math.pow(directCutoff, 0.1f);
 
 			// Calculate reverb parameters for this sound
 			float sendGain1 = 0.0f;
@@ -112,7 +111,7 @@ public class Enviroment {
 			// Shoot rays around sound
 			final float phi = 1.618033988f;
 			final float gAngle = phi * (float) Math.PI * 2.0f;
-			final float maxDistance = (float) (Config.maxDistance.get() * 1.0f);
+			final float maxDistance = Config.maxRayDistance.get().floatValue();
 
 			final int numRays = Config.environmentEvaluationRays.get();
 			final int rayBounces = 4;
@@ -125,9 +124,8 @@ public class Enviroment {
 			final float rcpPrimaryRays = 1.0f / numRays;
 
 			for (int i = 0; i < numRays; i++) {
-				final float fi = i;
-				final float fiN = fi / numRays;
-				final float longitude = gAngle * fi;
+				final float fiN = (float) i / numRays;
+				final float longitude = gAngle * (float) i;
 				final float latitude = (float) Math.asin(fiN * 2.0f - 1.0f);
 
 				final Vec3d rayDir = new Vec3d(Math.cos(latitude) * Math.cos(longitude),
@@ -142,7 +140,7 @@ public class Enviroment {
 				final BlockRayTraceResult rayHit = mc.world.rayTraceBlocks(rayTraceContext);
 
 				if (rayHit.getType() != RayTraceResult.Type.MISS) {
-					final double rayLength = soundPos.distanceTo(rayHit.getHitVec());
+					final float rayLength = (float) soundPos.distanceTo(rayHit.getHitVec());
 
 					// Additional bounces
 					BlockPos lastHitBlock = rayHit.getPos();
@@ -150,12 +148,11 @@ public class Enviroment {
 					Vec3d lastHitNormal = new Vec3d(rayHit.getFace().getDirectionVec());
 					Vec3d lastRayDir = rayDir;
 
-					float totalRayDistance = (float) rayLength;
+					float totalRayDistance = rayLength;
 
 					// Secondary ray bounces
 					for (int j = 0; j < rayBounces; j++) {
 						final Vec3d newRayDir = Utils.reflect(lastRayDir, lastHitNormal);
-						// Vec3d newRayDir = lastHitNormal;
 						final Vec3d newRayStart = new Vec3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
 								lastHitPos.getY() + lastHitNormal.getY() * 0.01, lastHitPos.getZ() + lastHitNormal.getZ() * 0.01);
 						final Vec3d newRayEnd = new Vec3d(newRayStart.x + newRayDir.x * maxDistance,
@@ -194,7 +191,6 @@ public class Enviroment {
 								final RayTraceResult finalRayHit = mc.world.rayTraceBlocks(rayTraceFinalContext);
 
 								if (finalRayHit.getType() == RayTraceResult.Type.MISS) {
-									// log("Secondary ray hit the player!");
 									sharedAirspace += 1.0f;
 								}
 							}
@@ -329,7 +325,11 @@ public class Enviroment {
 			SoundPhysics.checkErrorLog("Error setting enviroment direct filter: ");
 		}
 
-		AL10.alSourcef(alSource, EXTEfx.AL_AIR_ABSORPTION_FACTOR, (float) MathHelper.clamp(Config.airAbsorption.get() * airAbsorptionFactor, 0.0f, 10.0f));
+		AL10.alSourcef(alSource, EXTEfx.AL_AIR_ABSORPTION_FACTOR, MathHelper.clamp(Config.airAbsorption.get().floatValue() * airAbsorptionFactor, 0.0f, 10.0f));
 		SoundPhysics.checkErrorLog("Error setting enviroment air absortion: ");
+	}
+
+	private Enviroment() {
+		throw new IllegalStateException("Utility class");
 	}
 }

@@ -131,4 +131,8 @@ public class ASMTools {
 	}
 
 	private enum EFXtype {AUX, REVERB, FILTER}
+
+	private ASMTools() {
+		throw new IllegalStateException("Utility class");
+	}
 }

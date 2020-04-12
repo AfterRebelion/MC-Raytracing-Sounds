@@ -14,53 +14,45 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.openal.AL10;
 
-@Mod(SoundPhysics.modid)
+@Mod(SoundPhysics.MODID)
 public class SoundPhysics {
 
-	public static final String modid = "soundphysics";
-	public static final String version = "1.0.8-1";
-	public static final String mcVersion = "1.12.2";
-	public static final String deps = "";
+	public static final String MODID = "soundphysics";
+	public static final Logger LOGGER = LogManager.getLogger(MODID);
 
-	public static final Logger logger = LogManager.getLogger(modid);
-
-	public static boolean onServer = false;
+	private static boolean onServer = false;
 
 	public SoundPhysics() {
 		// Register the setup method for modloading
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-		// Register the enqueueIMC method for modloading
-		//FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-		// Register the processIMC method for modloading
-		//FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
 		// Register the doClientStuff method for modloading
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::clientSetup);
 
 		// Register ourselves for server and other game events we are interested in
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 
-	public void setup(final FMLCommonSetupEvent event) {
+	public void commonSetup(final FMLCommonSetupEvent event) {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_CONFIG);
 		Config.loadConfig(Config.COMMON_CONFIG, FMLPaths.CONFIGDIR.get().resolve("soundphysics-common.toml"));
 	}
 
-	public void doClientStuff(final FMLClientSetupEvent event) {
+	public void clientSetup(final FMLClientSetupEvent event) {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
 		Config.loadConfig(Config.CLIENT_CONFIG, FMLPaths.CONFIGDIR.get().resolve("soundphysics-client.toml"));
 		MinecraftForge.EVENT_BUS.register(new SoundEventHandler());
 	}
 
-	public void doServerStuff(final FMLDedicatedServerSetupEvent event) {
+	public void dedicatedServerSetup(final FMLDedicatedServerSetupEvent event) {
 		onServer = true;
 	}
 
 	public static void log(final String message) {
-		logger.info(message);
+		LOGGER.info(message);
 	}
 
 	public static void logError(final String errorMessage) {
-		logger.error(errorMessage);
+		LOGGER.error(errorMessage);
 	}
 
 	public static boolean checkErrorLog(final String errorMessage) {

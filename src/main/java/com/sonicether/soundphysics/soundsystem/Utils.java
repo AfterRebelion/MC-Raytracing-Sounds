@@ -24,7 +24,8 @@ public class Utils {
 		double offsetX = 0.0;
 		double offsetY = 0.0;
 		double offsetZ = 0.0;
-		double offsetTowardsPlayer;
+		// 0.867 > square root of 0.5^2 * 3
+		final double offsetTowardsPlayer = 0.867;
 
 		double tempNormX;
 		double tempNormY;
@@ -39,8 +40,7 @@ public class Utils {
 		if (mc.world != null && (category == SoundCategory.BLOCKS ||
 				!mc.world.isAirBlock(new BlockPos(sourceSound.getX(), sourceSound.getY(), sourceSound.getZ())))) {
 			// The ray will probably hit the block that it's emitting from
-			// before
-			// escaping. Offset the ray start position towards the player by the
+			// before escaping. Offset the ray start position towards the player by the
 			// diagonal half length of a cube
 
 			tempNormX = playerPos.getX() - sourceSound.getX();
@@ -50,8 +50,7 @@ public class Utils {
 			tempNormX /= length;
 			tempNormY /= length;
 			tempNormZ /= length;
-			// 0.867 > square root of 0.5^2 * 3
-			offsetTowardsPlayer = 0.867;
+
 			offsetX += tempNormX * offsetTowardsPlayer;
 			offsetY += tempNormY * offsetTowardsPlayer;
 			offsetZ += tempNormZ * offsetTowardsPlayer;
@@ -77,36 +76,38 @@ public class Utils {
 
 	public static float getBlockReflectivity(final BlockPos blockPos) {
 		Minecraft mc = Minecraft.getInstance();
+		assert mc.world != null;
 		final BlockState blockState = mc.world.getBlockState(blockPos);
-		final SoundType soundType = blockState.getBlock().getSoundType(blockState);
+		final SoundType soundType = blockState.getSoundType();
+		//final SoundType soundType = blockState.getBlock().getSoundType(blockState);
 
 		float reflectivity = 0.5f;
 
 		if (soundType == SoundType.STONE) {
-			reflectivity = (float) (Config.stoneReflectivity.get() * 1.0f);
+			reflectivity = Config.stoneReflectivity.get().floatValue();
 		} else if (soundType == SoundType.WOOD) {
-			reflectivity = (float) (Config.woodReflectivity.get() * 1.0f);
+			reflectivity = Config.woodReflectivity.get().floatValue();
 		} else if (soundType == SoundType.GROUND) {
-			reflectivity = (float) (Config.groundReflectivity.get() * 1.0f);
+			reflectivity = Config.groundReflectivity.get().floatValue();
 		} else if (soundType == SoundType.PLANT) {
-			reflectivity = (float) (Config.plantReflectivity.get() * 1.0f);
+			reflectivity = Config.plantReflectivity.get().floatValue();
 		} else if (soundType == SoundType.METAL) {
-			reflectivity = (float) (Config.metalReflectivity.get() * 1.0f);
+			reflectivity = Config.metalReflectivity.get().floatValue();
 		} else if (soundType == SoundType.GLASS) {
-			reflectivity = (float) (Config.glassReflectivity.get() * 1.0f);
+			reflectivity = Config.glassReflectivity.get().floatValue();
 		} else if (soundType == SoundType.CLOTH) {
-			reflectivity = (float) (Config.clothReflectivity.get() * 1.0f);
+			reflectivity = Config.clothReflectivity.get().floatValue();
 		} else if (soundType == SoundType.SAND) {
-			reflectivity = (float) (Config.sandReflectivity.get() * 1.0f);
+			reflectivity = Config.sandReflectivity.get().floatValue();
 		} else if (soundType == SoundType.SNOW) {
-			reflectivity = (float) (Config.snowReflectivity.get() * 1.0f);
+			reflectivity = Config.snowReflectivity.get().floatValue();
 		} else if (soundType == SoundType.LADDER) {
-			reflectivity = (float) (Config.woodReflectivity.get() * 1.0f);
+			reflectivity = Config.woodReflectivity.get().floatValue();
 		} else if (soundType == SoundType.ANVIL) {
-			reflectivity = (float) (Config.metalReflectivity.get() * 1.0f);
+			reflectivity = Config.metalReflectivity.get().floatValue();
 		}
 
-		reflectivity *= Config.globalBlockReflectance.get();
+		reflectivity *= Config.globalBlockReflectance.get().floatValue();
 
 		return reflectivity;
 	}
