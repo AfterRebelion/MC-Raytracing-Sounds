@@ -287,7 +287,7 @@ public class Enviroment {
 									  final float sendGain3, final float sendGain4, final float sendCutoff1, final float sendCutoff2,
 									  final float sendCutoff3, final float sendCutoff4, final float directCutoff, final float directGain,
 									  final float airAbsorptionFactor) {
-		int alSource = source.getSource().field_216441_b;
+		int alSource = source.getSource().id;
 		// Set reverb send filter values and set source to send to all reverb fx
 		// slots
 		if (sendGain1 != 0) {

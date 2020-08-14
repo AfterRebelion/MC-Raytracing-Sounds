@@ -79,7 +79,6 @@ public class Utils {
 		assert mc.world != null;
 		final BlockState blockState = mc.world.getBlockState(blockPos);
 		final SoundType soundType = blockState.getSoundType();
-		//final SoundType soundType = blockState.getBlock().getSoundType(blockState);
 
 		float reflectivity = 0.5f;
 
@@ -120,5 +119,9 @@ public class Utils {
 		final double z = dir.getZ() - dot2 * normal.getZ();
 
 		return new Vec3d(x, y, z);
+	}
+
+	private Utils() {
+		throw new IllegalStateException("Utility class");
 	}
 }
