@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.client.event.sound.SoundEvent;
@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class Utils {
 	private static final Pattern stepPattern = Pattern.compile(".*step.*");
 
-	public static Vec3d offsetSound(final SoundEvent.SoundSourceEvent soundSourceEvent, final Vec3d playerPos) {
+	public static Vector3d offsetSound(final SoundEvent.SoundSourceEvent soundSourceEvent, final Vector3d playerPos) {
 		ISound sourceSound = soundSourceEvent.getSound();
 		Minecraft mc = Minecraft.getInstance();
 
@@ -56,7 +56,7 @@ public class Utils {
 			offsetZ += tempNormZ * offsetTowardsPlayer;
 		}
 
-		return new Vec3d(sourceSound.getX() + offsetX, sourceSound.getY() + offsetY, sourceSound.getZ() + offsetZ);
+		return new Vector3d(sourceSound.getX() + offsetX, sourceSound.getY() + offsetY, sourceSound.getZ() + offsetZ);
 	}
 
 	/** Copy of {@link net.minecraft.world.World#isRainingAt} */
@@ -111,14 +111,14 @@ public class Utils {
 		return reflectivity;
 	}
 
-	public static Vec3d reflect(final Vec3d dir, final Vec3d normal) {
+	public static Vector3d reflect(final Vector3d dir, final Vector3d normal) {
 		final double dot2 = dir.dotProduct(normal) * 2;
 
 		final double x = dir.getX() - dot2 * normal.getX();
 		final double y = dir.getY() - dot2 * normal.getY();
 		final double z = dir.getZ() - dot2 * normal.getZ();
 
-		return new Vec3d(x, y, z);
+		return new Vector3d(x, y, z);
 	}
 
 	private Utils() {

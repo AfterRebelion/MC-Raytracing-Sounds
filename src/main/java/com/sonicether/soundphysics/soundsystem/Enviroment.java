@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.event.sound.PlaySoundSourceEvent;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
@@ -40,14 +40,14 @@ public class Enviroment {
 			float directCutoff = 1.0f;
 			final float absorptionCoeff = Config.globalBlockAbsorption.get().floatValue() * 3.0f;
 
-			final Vec3d playerPos = new Vec3d(mc.player.getPosX(), mc.player.getPosY() + mc.player.getEyeHeight(), mc.player.getPosZ());
-			final Vec3d soundPos = Utils.offsetSound(SoundSourceEvent, playerPos);
-			final Vec3d normalToPlayer = playerPos.subtract(soundPos).normalize();
+			final Vector3d playerPos = new Vector3d(mc.player.getPosX(), mc.player.getPosY() + mc.player.getEyeHeight(), mc.player.getPosZ());
+			final Vector3d soundPos = Utils.offsetSound(SoundSourceEvent, playerPos);
+			final Vector3d normalToPlayer = playerPos.subtract(soundPos).normalize();
 
 			float airAbsorptionFactor = 1.0f;
 
 			if (Config.snowAirAbsorptionFactor.get() > 1.0f && mc.world.isRaining()) {
-				final Vec3d middlePos = playerPos.add(soundPos).scale(0.5);
+				final Vector3d middlePos = playerPos.add(soundPos).scale(0.5);
 				final BlockPos playerPosBlock = new BlockPos(playerPos);
 				final BlockPos soundPosBlock = new BlockPos(soundPos);
 				final BlockPos middlePosBlock = new BlockPos(middlePos);
@@ -58,7 +58,7 @@ public class Enviroment {
 				airAbsorptionFactor = Math.max(Config.snowAirAbsorptionFactor.get().floatValue() * mc.world.getRainStrength(1.0f) * snowFactor, airAbsorptionFactor);
 			}
 
-			Vec3d rayOrigin = soundPos;
+			Vector3d rayOrigin = soundPos;
 			float occlusionAccumulation = 0.0f;
 
 			for (int i = 0; i < 10; i++) {
@@ -79,7 +79,7 @@ public class Enviroment {
 
 				occlusionAccumulation += blockOcclusion;
 
-				rayOrigin = new Vec3d(rayHit.getHitVec().x + normalToPlayer.x * 0.1, rayHit.getHitVec().y + normalToPlayer.y * 0.1,
+				rayOrigin = new Vector3d(rayHit.getHitVec().x + normalToPlayer.x * 0.1, rayHit.getHitVec().y + normalToPlayer.y * 0.1,
 						rayHit.getHitVec().z + normalToPlayer.z * 0.1);
 			}
 
@@ -128,12 +128,12 @@ public class Enviroment {
 				final float longitude = gAngle * (float) i;
 				final float latitude = (float) Math.asin(fiN * 2.0f - 1.0f);
 
-				final Vec3d rayDir = new Vec3d(Math.cos(latitude) * Math.cos(longitude),
+				final Vector3d rayDir = new Vector3d(Math.cos(latitude) * Math.cos(longitude),
 						Math.cos(latitude) * Math.sin(longitude), Math.sin(latitude));
 
-				final Vec3d rayStart = new Vec3d(soundPos.x, soundPos.y, soundPos.z);
+				final Vector3d rayStart = new Vector3d(soundPos.x, soundPos.y, soundPos.z);
 
-				final Vec3d rayEnd = new Vec3d(rayStart.x + rayDir.x * maxDistance, rayStart.y + rayDir.y * maxDistance,
+				final Vector3d rayEnd = new Vector3d(rayStart.x + rayDir.x * maxDistance, rayStart.y + rayDir.y * maxDistance,
 						rayStart.z + rayDir.z * maxDistance);
 
 				final RayTraceContext rayTraceContext = new RayTraceContext(rayStart, rayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
@@ -144,18 +144,18 @@ public class Enviroment {
 
 					// Additional bounces
 					BlockPos lastHitBlock = rayHit.getPos();
-					Vec3d lastHitPos = rayHit.getHitVec();
-					Vec3d lastHitNormal = new Vec3d(rayHit.getFace().getDirectionVec());
-					Vec3d lastRayDir = rayDir;
+					Vector3d lastHitPos = rayHit.getHitVec();
+					Vector3d lastHitNormal = Vector3d.copy(rayHit.getFace().getDirectionVec());
+					Vector3d lastRayDir = rayDir;
 
 					float totalRayDistance = rayLength;
 
 					// Secondary ray bounces
 					for (int j = 0; j < rayBounces; j++) {
-						final Vec3d newRayDir = Utils.reflect(lastRayDir, lastHitNormal);
-						final Vec3d newRayStart = new Vec3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
+						final Vector3d newRayDir = Utils.reflect(lastRayDir, lastHitNormal);
+						final Vector3d newRayStart = new Vector3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
 								lastHitPos.getY() + lastHitNormal.getY() * 0.01, lastHitPos.getZ() + lastHitNormal.getZ() * 0.01);
-						final Vec3d newRayEnd = new Vec3d(newRayStart.x + newRayDir.x * maxDistance,
+						final Vector3d newRayEnd = new Vector3d(newRayStart.x + newRayDir.x * maxDistance,
 								newRayStart.y + newRayDir.y * maxDistance, newRayStart.z + newRayDir.z * maxDistance);
 
 						final RayTraceContext rayTraceSecondaryContext = new RayTraceContext(newRayStart, newRayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
@@ -175,7 +175,7 @@ public class Enviroment {
 							totalRayDistance += newRayLength;
 
 							lastHitPos = newRayHit.getHitVec();
-							lastHitNormal = new Vec3d(newRayHit.getFace().getDirectionVec());
+							lastHitNormal = Vector3d.copy(newRayHit.getFace().getDirectionVec());
 							lastRayDir = newRayDir;
 							lastHitBlock = newRayHit.getPos();
 
@@ -184,7 +184,7 @@ public class Enviroment {
 							// share airspace.
 							if (Config.simplerSharedAirspaceSimulation.get() && j == rayBounces - 1
 									|| !Config.simplerSharedAirspaceSimulation.get()) {
-								final Vec3d finalRayStart = new Vec3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
+								final Vector3d finalRayStart = new Vector3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
 										lastHitPos.getY() + lastHitNormal.getY() * 0.01, lastHitPos.getZ() + lastHitNormal.getZ() * 0.01);
 
 								final RayTraceContext rayTraceFinalContext = new RayTraceContext(finalRayStart, playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
