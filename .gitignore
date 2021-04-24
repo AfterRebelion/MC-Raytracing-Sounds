@@ -1,5 +1,6 @@
 # eclipse
-bin
+bin/
+eclipse/
 *.launch
 .settings
 .metadata
@@ -7,19 +8,50 @@ bin
 .project
 
 # idea
-out
 *.ipr
 *.iws
 *.iml
-.idea
+.idea/
 
 # gradle
-build
-.gradle
+build/
+.gradle/
+out/
 
-# other
-eclipse
-run
+# vscode
+.settings/
+.vscode/
+bin/
+.classpath
+.project
 
 # Files from Forge MDK
 forge*changelog.txt
+run/
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Fix wrapper
+!gradle/wrapper/gradle-wrapper.jar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
