@@ -38,7 +38,7 @@ public class ASMHooks {
 	 */
 	public static double calculateEntitySoundOffset(final Entity entity, final SoundEvent sound) {
 		if (sound == null) return entity.getEyeHeight();
-		if (stepPattern.matcher(sound.getName().getPath()).matches()) {
+		if (stepPattern.matcher(sound.getLocation().getPath()).matches()) {
 			return 0;
 		}
 

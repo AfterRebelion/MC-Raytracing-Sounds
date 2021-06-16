@@ -17,12 +17,12 @@ public class SoundEventHandler {
 
 	@SubscribeEvent(priority= EventPriority.LOWEST)
 	public void onEvent(PlaySoundSourceEvent event) {
-		if (Boolean.FALSE.equals(event.getSound().isGlobal())) {
-			if (Config.noteBlockDisable.get() && SoundCategory.RECORDS.equals(event.getSound().getCategory())
+		if (Boolean.FALSE.equals(event.getSound().isRelative())) {
+			if (Config.noteBlockDisable.get() && SoundCategory.RECORDS.equals(event.getSound().getSource())
 					&& noteBlockPattern.matcher(event.getName()).matches()) return;
 			if (event.getName() == null) return;
 			Enviroment.evaluateEnvironment(event);
-			SoundPhysics.log(event.getSound().getSoundLocation().toString());
+			SoundPhysics.log(event.getSound().getLocation().toString());
 		}
 	}
 }

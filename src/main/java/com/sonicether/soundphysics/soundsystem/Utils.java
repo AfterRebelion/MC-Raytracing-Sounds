@@ -31,21 +31,21 @@ public class Utils {
 		double tempNormY;
 		double tempNormZ;
 
-		final SoundCategory category = sourceSound.getCategory();
+		final SoundCategory category = sourceSound.getSource();
 
 		if (sourceSound.getY() % 1.0 < 0.001 || stepPattern.matcher(sourceSound.toString()).matches()) {
 			offsetY = 0.225;
 		}
 
-		if (mc.world != null && (category == SoundCategory.BLOCKS ||
-				!mc.world.isAirBlock(new BlockPos(sourceSound.getX(), sourceSound.getY(), sourceSound.getZ())))) {
+		if (mc.level != null && (category == SoundCategory.BLOCKS ||
+				!mc.level.isEmptyBlock(new BlockPos(sourceSound.getX(), sourceSound.getY(), sourceSound.getZ())))) {
 			// The ray will probably hit the block that it's emitting from
 			// before escaping. Offset the ray start position towards the player by the
 			// diagonal half length of a cube
 
-			tempNormX = playerPos.getX() - sourceSound.getX();
-			tempNormY = playerPos.getY() - sourceSound.getY();
-			tempNormZ = playerPos.getZ() - sourceSound.getZ();
+			tempNormX = playerPos.x() - sourceSound.getX();
+			tempNormY = playerPos.y() - sourceSound.getY();
+			tempNormZ = playerPos.z() - sourceSound.getZ();
 			final double length = Math.sqrt(tempNormX * tempNormX + tempNormY * tempNormY + tempNormZ * tempNormZ);
 			tempNormX /= length;
 			tempNormY /= length;
@@ -62,22 +62,22 @@ public class Utils {
 	/** Copy of {@link net.minecraft.world.World#isRainingAt} */
 	public static boolean isSnowingAt(BlockPos position, boolean check_rain) {
 		Minecraft mc = Minecraft.getInstance();
-		assert mc.world != null;
-		if (check_rain && !mc.world.isRaining()) {
+		assert mc.level != null;
+		if (check_rain && !mc.level.isRaining()) {
 			return false;
-		} else if (!mc.world.canSeeSky(position)) {
+		} else if (!mc.level.canSeeSky(position)) {
 			return false;
-		} else if (mc.world.getHeight(Heightmap.Type.MOTION_BLOCKING, position).getY() > position.getY()) {
+		} else if (mc.level.getHeightmapPos(Heightmap.Type.MOTION_BLOCKING, position).getY() > position.getY()) {
 			return false;
 		} else {
-			return mc.world.getBiome(position).getPrecipitation() == Biome.RainType.SNOW;
+			return mc.level.getBiome(position).getPrecipitation() == Biome.RainType.SNOW;
 		}
 	}
 
 	public static float getBlockReflectivity(final BlockPos blockPos) {
 		Minecraft mc = Minecraft.getInstance();
-		assert mc.world != null;
-		final BlockState blockState = mc.world.getBlockState(blockPos);
+		assert mc.level != null;
+		final BlockState blockState = mc.level.getBlockState(blockPos);
 		final SoundType soundType = blockState.getSoundType();
 
 		float reflectivity = 0.5f;
@@ -86,15 +86,15 @@ public class Utils {
 			reflectivity = Config.stoneReflectivity.get().floatValue();
 		} else if (soundType == SoundType.WOOD) {
 			reflectivity = Config.woodReflectivity.get().floatValue();
-		} else if (soundType == SoundType.GROUND) {
+		} else if (soundType == SoundType.GRAVEL) {
 			reflectivity = Config.groundReflectivity.get().floatValue();
-		} else if (soundType == SoundType.PLANT) {
+		} else if (soundType == SoundType.GRASS) {
 			reflectivity = Config.plantReflectivity.get().floatValue();
 		} else if (soundType == SoundType.METAL) {
 			reflectivity = Config.metalReflectivity.get().floatValue();
 		} else if (soundType == SoundType.GLASS) {
 			reflectivity = Config.glassReflectivity.get().floatValue();
-		} else if (soundType == SoundType.CLOTH) {
+		} else if (soundType == SoundType.WOOL) {
 			reflectivity = Config.clothReflectivity.get().floatValue();
 		} else if (soundType == SoundType.SAND) {
 			reflectivity = Config.sandReflectivity.get().floatValue();
@@ -112,11 +112,11 @@ public class Utils {
 	}
 
 	public static Vector3d reflect(final Vector3d dir, final Vector3d normal) {
-		final double dot2 = dir.dotProduct(normal) * 2;
+		final double dot2 = dir.dot(normal) * 2;
 
-		final double x = dir.getX() - dot2 * normal.getX();
-		final double y = dir.getY() - dot2 * normal.getY();
-		final double z = dir.getZ() - dot2 * normal.getZ();
+		final double x = dir.x() - dot2 * normal.x();
+		final double y = dir.y() - dot2 * normal.y();
+		final double z = dir.z() - dot2 * normal.z();
 
 		return new Vector3d(x, y, z);
 	}

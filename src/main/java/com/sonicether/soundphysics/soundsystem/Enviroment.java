@@ -23,14 +23,14 @@ public class Enviroment {
 		final Minecraft mc = Minecraft.getInstance();
 		try {
 			ISound sourceSound = SoundSourceEvent.getSound();
-			if (mc.player == null || mc.world == null || sourceSound.getY() <= 0) {
+			if (mc.player == null || mc.level == null || sourceSound.getY() <= 0) {
 				// posY <= 0 as a condition has to be there: Ingame
 				// menu clicks do have a player and world present
 				setEnvironment(SoundSourceEvent, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 				return;
 			}
 
-			final boolean isWeather = (SoundSourceEvent.getSound().getCategory() == SoundCategory.WEATHER);
+			final boolean isWeather = (SoundSourceEvent.getSound().getSource() == SoundCategory.WEATHER);
 
 			if (Config.skipRainOcclusionTracing.get() && isWeather) {
 				setEnvironment(SoundSourceEvent, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -40,13 +40,13 @@ public class Enviroment {
 			float directCutoff = 1.0f;
 			final float absorptionCoeff = Config.globalBlockAbsorption.get().floatValue() * 3.0f;
 
-			final Vector3d playerPos = new Vector3d(mc.player.getPosX(), mc.player.getPosY() + mc.player.getEyeHeight(), mc.player.getPosZ());
+			final Vector3d playerPos = new Vector3d(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(), mc.player.getZ());
 			final Vector3d soundPos = Utils.offsetSound(SoundSourceEvent, playerPos);
 			final Vector3d normalToPlayer = playerPos.subtract(soundPos).normalize();
 
 			float airAbsorptionFactor = 1.0f;
 
-			if (Config.snowAirAbsorptionFactor.get() > 1.0f && mc.world.isRaining()) {
+			if (Config.snowAirAbsorptionFactor.get() > 1.0f && mc.level.isRaining()) {
 				final Vector3d middlePos = playerPos.add(soundPos).scale(0.5);
 				final BlockPos playerPosBlock = new BlockPos(playerPos);
 				final BlockPos soundPosBlock = new BlockPos(soundPos);
@@ -55,7 +55,7 @@ public class Enviroment {
 				final int snowingSound = Utils.isSnowingAt(soundPosBlock, false) ? 1 : 0;
 				final int snowingMiddle = Utils.isSnowingAt(middlePosBlock, false) ? 1 : 0;
 				final float snowFactor = snowingPlayer * 0.25f + snowingMiddle * 0.5f + snowingSound * 0.25f;
-				airAbsorptionFactor = Math.max(Config.snowAirAbsorptionFactor.get().floatValue() * mc.world.getRainStrength(1.0f) * snowFactor, airAbsorptionFactor);
+				airAbsorptionFactor = Math.max(Config.snowAirAbsorptionFactor.get().floatValue() * mc.level.getRainLevel(1.0f) * snowFactor, airAbsorptionFactor);
 			}
 
 			Vector3d rayOrigin = soundPos;
@@ -63,24 +63,24 @@ public class Enviroment {
 
 			for (int i = 0; i < 10; i++) {
 				final RayTraceContext rayTraceContext = new RayTraceContext(rayOrigin, playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
-				final BlockRayTraceResult rayHit = mc.world.rayTraceBlocks(rayTraceContext);
+				final BlockRayTraceResult rayHit = mc.level.clip(rayTraceContext);
 
 				if (rayHit.getType() == RayTraceResult.Type.MISS) {
 					break;
 				}
 
-				final BlockState blockHit = mc.world.getBlockState(rayHit.getPos());
+				final BlockState blockHit = mc.level.getBlockState(rayHit.getBlockPos());
 
 				float blockOcclusion = 1.0f;
 
-				if (!blockHit.isOpaqueCube(mc.world, rayHit.getPos())) {
+				if (!blockHit.isSolidRender(mc.level, rayHit.getBlockPos())) {
 					blockOcclusion *= 0.15f;
 				}
 
 				occlusionAccumulation += blockOcclusion;
 
-				rayOrigin = new Vector3d(rayHit.getHitVec().x + normalToPlayer.x * 0.1, rayHit.getHitVec().y + normalToPlayer.y * 0.1,
-						rayHit.getHitVec().z + normalToPlayer.z * 0.1);
+				rayOrigin = new Vector3d(rayHit.getLocation().x + normalToPlayer.x * 0.1, rayHit.getLocation().y + normalToPlayer.y * 0.1,
+						rayHit.getLocation().z + normalToPlayer.z * 0.1);
 			}
 
 			directCutoff = (float) Math.exp(-occlusionAccumulation * absorptionCoeff);
@@ -137,15 +137,15 @@ public class Enviroment {
 						rayStart.z + rayDir.z * maxDistance);
 
 				final RayTraceContext rayTraceContext = new RayTraceContext(rayStart, rayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
-				final BlockRayTraceResult rayHit = mc.world.rayTraceBlocks(rayTraceContext);
+				final BlockRayTraceResult rayHit = mc.level.clip(rayTraceContext);
 
 				if (rayHit.getType() != RayTraceResult.Type.MISS) {
-					final float rayLength = (float) soundPos.distanceTo(rayHit.getHitVec());
+					final float rayLength = (float) soundPos.distanceTo(rayHit.getLocation());
 
 					// Additional bounces
-					BlockPos lastHitBlock = rayHit.getPos();
-					Vector3d lastHitPos = rayHit.getHitVec();
-					Vector3d lastHitNormal = Vector3d.copy(rayHit.getFace().getDirectionVec());
+					BlockPos lastHitBlock = rayHit.getBlockPos();
+					Vector3d lastHitPos = rayHit.getLocation();
+					Vector3d lastHitNormal = Vector3d.atLowerCornerOf(rayHit.getDirection().getNormal());
 					Vector3d lastRayDir = rayDir;
 
 					float totalRayDistance = rayLength;
@@ -153,13 +153,13 @@ public class Enviroment {
 					// Secondary ray bounces
 					for (int j = 0; j < rayBounces; j++) {
 						final Vector3d newRayDir = Utils.reflect(lastRayDir, lastHitNormal);
-						final Vector3d newRayStart = new Vector3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
-								lastHitPos.getY() + lastHitNormal.getY() * 0.01, lastHitPos.getZ() + lastHitNormal.getZ() * 0.01);
+						final Vector3d newRayStart = new Vector3d(lastHitPos.x() + lastHitNormal.x() * 0.01,
+								lastHitPos.y() + lastHitNormal.y() * 0.01, lastHitPos.z() + lastHitNormal.z() * 0.01);
 						final Vector3d newRayEnd = new Vector3d(newRayStart.x + newRayDir.x * maxDistance,
 								newRayStart.y + newRayDir.y * maxDistance, newRayStart.z + newRayDir.z * maxDistance);
 
 						final RayTraceContext rayTraceSecondaryContext = new RayTraceContext(newRayStart, newRayEnd, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
-						final BlockRayTraceResult newRayHit = mc.world.rayTraceBlocks(rayTraceSecondaryContext);
+						final BlockRayTraceResult newRayHit = mc.level.clip(rayTraceSecondaryContext);
 
 						float energyTowardsPlayer = 0.25f;
 						final float blockReflectivity = Utils.getBlockReflectivity(lastHitBlock);
@@ -168,27 +168,27 @@ public class Enviroment {
 						if (newRayHit.getType() == RayTraceResult.Type.MISS) {
 							totalRayDistance += lastHitPos.distanceTo(playerPos);
 						} else {
-							final double newRayLength = lastHitPos.distanceTo(newRayHit.getHitVec());
+							final double newRayLength = lastHitPos.distanceTo(newRayHit.getLocation());
 
 							bounceReflectivityRatio[j] += blockReflectivity;
 
 							totalRayDistance += newRayLength;
 
-							lastHitPos = newRayHit.getHitVec();
-							lastHitNormal = Vector3d.copy(newRayHit.getFace().getDirectionVec());
+							lastHitPos = newRayHit.getLocation();
+							lastHitNormal = Vector3d.atLowerCornerOf(newRayHit.getDirection().getNormal());
 							lastRayDir = newRayDir;
-							lastHitBlock = newRayHit.getPos();
+							lastHitBlock = newRayHit.getBlockPos();
 
 							// Cast one final ray towards the player. If it's
 							// unobstructed, then the sound source and the player
 							// share airspace.
 							if (Config.simplerSharedAirspaceSimulation.get() && j == rayBounces - 1
 									|| !Config.simplerSharedAirspaceSimulation.get()) {
-								final Vector3d finalRayStart = new Vector3d(lastHitPos.getX() + lastHitNormal.getX() * 0.01,
-										lastHitPos.getY() + lastHitNormal.getY() * 0.01, lastHitPos.getZ() + lastHitNormal.getZ() * 0.01);
+								final Vector3d finalRayStart = new Vector3d(lastHitPos.x() + lastHitNormal.x() * 0.01,
+										lastHitPos.y() + lastHitNormal.y() * 0.01, lastHitPos.z() + lastHitNormal.z() * 0.01);
 
 								final RayTraceContext rayTraceFinalContext = new RayTraceContext(finalRayStart, playerPos, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.ANY, mc.player);
-								final RayTraceResult finalRayHit = mc.world.rayTraceBlocks(rayTraceFinalContext);
+								final RayTraceResult finalRayHit = mc.level.clip(rayTraceFinalContext);
 
 								if (finalRayHit.getType() == RayTraceResult.Type.MISS) {
 									sharedAirspace += 1.0f;
@@ -287,7 +287,7 @@ public class Enviroment {
 									  final float sendGain3, final float sendGain4, final float sendCutoff1, final float sendCutoff2,
 									  final float sendCutoff3, final float sendCutoff4, final float directCutoff, final float directGain,
 									  final float airAbsorptionFactor) {
-		int alSource = source.getSource().id;
+		int alSource = source.getSource().source;
 		// Set reverb send filter values and set source to send to all reverb fx
 		// slots
 		if (sendGain1 != 0) {
