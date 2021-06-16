@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "raytracingsounds",
+	"version": "${version}",
+
+	"name": "Raytracing Sounds",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"AfterRebelion"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+
+	"license": "CC0-1.0",
+	"icon": "assets/raytracingsounds/icon.png",
+
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"net.afterrebelion.raytracingsounds.RaytracingsoundsMain",
+			"net.afterrebelion.raytracingsounds.config.ModConfigInit"
+		],
+		"modmenu": [
+			"net.afterrebelion.raytracingsounds.config.ModMenuIntegration"
+		]
+	},
+
+	"depends": {
+		"fabricloader": ">=0.11.0",
+		"fabric": "*",
+		"minecraft": "1.16.x"
+	}
+}

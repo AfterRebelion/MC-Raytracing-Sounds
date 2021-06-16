@@ -1,32 +1,37 @@
+# gradle
+
+.gradle/
+build/
+out/
+classes/
+
 # eclipse
 bin/
 eclipse/
 *.launch
-.settings
-.metadata
-.classpath
-.project
 
 # idea
+
+.idea/
+*.iml
 *.ipr
 *.iws
-*.iml
-.idea/
-
-# gradle
-build/
-.gradle/
-out/
 
 # vscode
+
 .settings/
 .vscode/
 bin/
 .classpath
 .project
+*.code-workspace
 
-# Files from Forge MDK
-forge*changelog.txt
+# macos
+
+*.DS_Store
+
+# fabric
+
 run/
 
 # Compiled class file
